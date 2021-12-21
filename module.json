@@ -20,5 +20,6 @@
         "styles/lava-flow.css"
     ],
     "readme": "README.md",
-    "license": "https://opensource.org/licenses/MIT"
+    "license": "https://opensource.org/licenses/MIT",
+    "url": "https://github.com/Praxxian/lava-flow"
 }
