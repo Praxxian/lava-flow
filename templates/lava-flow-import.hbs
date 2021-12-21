@@ -1,0 +1,48 @@
+<form>
+    <label>Top Journal Folder</label><input type='text' name="rootFolderName" value="{{rootFolderName}}"
+        title="Leave empty to place directly into the journal. Any folder name will be created if it does not already exist." />
+    {{!-- <div class="form-group">
+        <label>Use S3 Storage for images?</label>
+        <input type="checkbox" name="useS3" {{#if useS3}}checked{{/if}}>
+    </div> --}}
+    <div class="form-group">
+        <label>Vault Folder</label>
+        <input type="file" id="{{idPrefix}}vaultFiles" webkitdirectory directory multiple required />
+    </div>
+    <div class="form-group">
+        <label>Overwrite existing journal entries with the same name?</label>
+        <input type="checkbox" name="overwrite" id="{{idPrefix}}overwrite"
+            title="If there already exists an entry with the same name in the folder, it will be overwritten." {{#if
+            overwrite}}checked{{/if}}>
+    </div>
+
+    <div class="form-group" id="{{idPrefix}}ignoreDuplicateDiv" style="display: none;">
+        <label>Skip duplicate incoming notes?</label>
+        <input type="checkbox" name="ignoreDuplicate"
+            title="If there already exists an entry with the same name in the folder, do not import the note. If left unchecked, a copy will be imported without overwriting the original."
+            {{#if ignoreDuplicate}}checked{{/if}}>
+    </div>
+
+    <div class="form-group">
+        <label>Give all players permission to observe?</label>
+        <input type="checkbox" name="playerObserve" id="{{idPrefix}}playerObserve"
+            title="Players will have the Observer permission on all notes within." {{#if
+            playerObserve}}checked{{/if}}>
+    </div>
+
+    <div class="form-group">
+        <label>Create/Update index journal?</label>
+        <input type="checkbox" name="createIndexFile" id="{{idPrefix}}createIndexFile"
+            title="Creates a journal that links to all journal entries, organized by folder. If it already exists, it updates it." {{#if
+            createIndexFile}}checked{{/if}}>
+    </div>
+
+    <div class="form-group">
+        <label>Create backlinks?</label>
+        <input type="checkbox" name="createBacklinks" id="{{idPrefix}}createBacklinks"
+            title="Each journal will have a 'References' section appended that links to journals reference it in their normal content." {{#if
+            createBacklinks}}checked{{/if}}>
+    </div>
+
+    <button type="submit"><i class="fas fa-upload"></i> Import</button>
+</form>
