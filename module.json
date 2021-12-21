@@ -3,7 +3,7 @@
     "title": "Lava Flow",
     "description": "A module for importing Obsidian MD vaults into Foundry VTT as journal entries.",
     "author": "Chase Burke",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minimumCoreVersion": "8",
     "scripts": [
         "scripts/js/showdown.min.js",
@@ -21,5 +21,7 @@
     ],
     "readme": "README.md",
     "license": "https://opensource.org/licenses/MIT",
-    "url": "https://github.com/Praxxian/lava-flow"
+    "url": "https://github.com/Praxxian/lava-flow",
+    "manifest" : "https://github.com/Praxxian/lava-flow/releases/download/1.0.1/module.json",
+    "download" : "https://github.com/Praxxian/lava-flow/releases/download/1.0.1/lava-flow.zip"
 }
