@@ -4,7 +4,7 @@
     "description": "A module for importing Obsidian MD vaults into Foundry VTT as journal entries.",
     "author": "Chase Burke",
     "version": "1.0.1",
-    "minimumCoreVersion": "8",
+    "minimumCoreVersion": "0.8.8",
     "scripts": [
         "scripts/js/showdown.min.js",
         "scripts/js/lava-flow.js"
