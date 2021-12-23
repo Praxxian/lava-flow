@@ -64,8 +64,12 @@ class LavaFlow {
         game.user.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTFOLDER, settings.rootFolderName);
         let rootFolder = await LavaFlow.createOrGetFolder(settings.rootFolderName, null);
         let linkDictionary = [];
-        for (let i = 0; i < settings.vaultFiles.length; i++)
-            linkDictionary.push(await LavaFlow.importFile(settings.vaultFiles[i], settings, rootFolder));
+        for (let i = 0; i < settings.vaultFiles.length; i++) {
+            var fileJournalPair = await LavaFlow.importFile(settings.vaultFiles[i], settings, rootFolder);
+            if (fileJournalPair)
+                linkDictionary.push(fileJournalPair);
+        }
+
         let allJournals = linkDictionary.map(d => d ? d.journal : null);
         for (let i = 0; i < linkDictionary.length; i++) {
             if (!linkDictionary[i])
@@ -85,18 +89,22 @@ class LavaFlow {
     static async createIndexFile(settings, linkDictionary, rootFolder) {
         const indexJournalName = "Index";
         let indexJournal = game.journal.find(j => j.name == indexJournalName && j.data.folder == rootFolder?.id);
-        let directories = [...new Set(linkDictionary.map(d => d.fileInfo.directories[0]))];
+        let directories = [...new Set(linkDictionary.map(d => LavaFlow.getIndexTopDirectory(d)))];
         directories.sort();
         let content = "";
         for (let j = 0; j < directories.length; j++) {
             content += `<h1>${directories[j]}</h1>`;
-            let journals = linkDictionary.filter(d => d.fileInfo.directories[0] == directories[j]).map(d => d.journal);
+            let journals = linkDictionary.filter(d => LavaFlow.getIndexTopDirectory(d) == directories[j]).map(d => d.journal);
             content += "<ul>" + journals.map(j => `<li>${j.link}</li>`).join('\n') + "</ul>";
         }
         if (indexJournal)
             await LavaFlow.updateJournal(indexJournal, content);
         else
             await LavaFlow.createJournal(indexJournalName, rootFolder, content, settings.playerObserve);
+    }
+
+    static getIndexTopDirectory(linkDictionaryEntry) {
+        return linkDictionaryEntry.fileInfo.directories.length > 0 ? linkDictionaryEntry.fileInfo.directories[0] : "Uncatergorized"
     }
 
     static async createBacklinks(linkDictionary) {
@@ -115,8 +123,6 @@ class LavaFlow {
             }
         }
     }
-
-
 
     static async createOrGetFolder(folderName, parentFolderID) {
         let folder = await LavaFlow.getFolder(folderName, parentFolderID);
