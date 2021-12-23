@@ -13,7 +13,8 @@ class LavaFlow {
     static FLAGS = {
         FOLDER: 'lavaFlowFolder',
         JOURNAL: 'lavaFlowJournalEntry',
-        SCOPE: 'world'
+        SCOPE: 'world',
+        LASTFOLDER: 'lava-flow-last-folder'
     }
 
     static TEMPLATES = {
@@ -60,6 +61,7 @@ class LavaFlow {
         if (!game.user.isGM)
             return;
         LavaFlow.log("Begin import...", true);
+        game.user.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTFOLDER, settings.rootFolderName);
         let rootFolder = await LavaFlow.createOrGetFolder(settings.rootFolderName, null);
         let linkDictionary = [];
         for (let i = 0; i < settings.vaultFiles.length; i++)
@@ -222,6 +224,10 @@ class LavaFlowSettings {
     playerObserve = false
     createIndexFile = false
     createBacklinks = true
+
+    constructor() {
+        this.rootFolderName = game.user.getFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTFOLDER);
+    }
 }
 
 class LavaFlowConfig extends FormApplication {
