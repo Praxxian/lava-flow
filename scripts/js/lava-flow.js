@@ -280,6 +280,10 @@ class LavaFlowConfig extends FormApplication {
     }
 }
 
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 class MDFileInfo {
     filePath
     directories = []
@@ -306,10 +310,10 @@ class MDFileInfo {
         parts.pop();
         this.fileNameNoExt = parts.join(separator);
 
-        this.fullKey = this.filePath.split(separator)[0];
+        this.fullKey = `${this.directories.join('/')}/${this.fileNameNoExt}`;
     }
 
     getKeyRegex() {
-        return new RegExp(`\\[\\[(${this.fileNameNoExt}|${this.fullKey})\\]\\]`, 'g');
+        return new RegExp(`\\[\\[(${escapeRegExp(this.fileNameNoExt)}|${escapeRegExp(this.fullKey)})\\]\\]`, 'g');
     }
 }
