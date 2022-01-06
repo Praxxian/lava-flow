@@ -29,6 +29,7 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 ## Limitations
 - Folder depth is limited to Foundry's folder depth limit.
 - Importing non-markdown files is not currently supporting. These will be skipped.
+- Desktop app only: the version of Electron used in v9 has a [bug](https://github.com/electron/electron/issues/31663) with webkitdirectory, meaning the import function does not work in the desktop app. Easy workaround: access your instance through your web browser instead by going to http://localhost:30000/ while the desktop app is running.
 
 ## License
 Lava Flow is released under the MIT License.
