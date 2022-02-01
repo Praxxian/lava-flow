@@ -113,8 +113,7 @@ class LavaFlow {
             let journal = linkDictionary[i].journal;
 
             let linkedJournals = linkDictionary.filter(d => d != linkDictionary[i]
-                && (d.fileInfo.links.indexOf(`[[${fileInfo.fileNameNoExt}]]`) >= 0
-                    || d.fileInfo.links.indexOf(`[[${fileInfo.fullKey}]]`) >= 0))
+                && d.fileInfo.links.filter(l => l.match(fileInfo.getKeyRegex())).length > 0)
                 .map(d => d.journal);
 
             if (linkedJournals.length > 0) {
@@ -314,6 +313,6 @@ class MDFileInfo {
     }
 
     getKeyRegex() {
-        return new RegExp(`\\[\\[(${escapeRegExp(this.fileNameNoExt)}|${escapeRegExp(this.fullKey)})\\]\\]`, 'g');
+        return new RegExp(`\\[\\[([^\\/\\]]+\\/)*${this.fileNameNoExt}\\]\\]`, 'g');
     }
 }
