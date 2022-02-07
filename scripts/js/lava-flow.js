@@ -201,7 +201,10 @@ class LavaFlow {
 
     static async getFileContent(file) {
         let markdown = await file.text();
-        let converter = new showdown.Converter();
+        let converter = new showdown.Converter({
+            tables: 'true',
+            tablesHeaderId: 'true'
+        });
         return converter.makeHtml(markdown);
     }
 
