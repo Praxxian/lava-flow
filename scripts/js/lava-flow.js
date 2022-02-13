@@ -14,7 +14,7 @@ class LavaFlow {
         FOLDER: 'lavaFlowFolder',
         JOURNAL: 'lavaFlowJournalEntry',
         SCOPE: 'world',
-        LASTFOLDER: 'lava-flow-last-folder'
+        LASTSETTINGS: 'lava-flow-last-settings'
     }
 
     static TEMPLATES = {
@@ -61,40 +61,51 @@ class LavaFlow {
         if (!game.user.isGM)
             return;
         LavaFlow.log("Begin import...", true);
-        game.user.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTFOLDER, settings.rootFolderName);
+        this.saveSettings(settings);
         let rootFolder = await LavaFlow.createOrGetFolder(settings.rootFolderName, null);
         let linkDictionary = [];
         for (let i = 0; i < settings.vaultFiles.length; i++) {
-            var fileJournalPair = await LavaFlow.importFile(settings.vaultFiles[i], settings, rootFolder);
+            let fileJournalPair = await LavaFlow.importFile(settings.vaultFiles[i], settings, rootFolder);
             if (fileJournalPair)
                 linkDictionary.push(fileJournalPair);
         }
 
         let allJournals = linkDictionary.map(d => d ? d.journal : null);
         for (let i = 0; i < linkDictionary.length; i++) {
-            if (!linkDictionary[i])
-                continue;
-            await LavaFlow.updateLinks(linkDictionary[i].fileInfo, linkDictionary[i].journal, allJournals);
+            let replaceLink = linkDictionary[i]?.journal?.link;
+            let fileInfo = linkDictionary[i].fileInfo;
+            if (fileInfo instanceof OtherFileInfo)
+                replaceLink = fileInfo.imgElement;
+            if (replaceLink)
+                await LavaFlow.updateLinks(fileInfo, replaceLink, allJournals);
         }
 
         if (settings.createIndexFile)
             await LavaFlow.createIndexFile(settings, linkDictionary, rootFolder);
 
         if (settings.createBacklinks)
-            await LavaFlow.createBacklinks(linkDictionary);
+            await LavaFlow.createBacklinks(linkDictionary.filter(d => d.fileInfo instanceof MDFileInfo));
 
         LavaFlow.log("Import complete.", true);
+    }
+
+    static async saveSettings(settings) {
+        let savedSettings = new LavaFlowSettings();
+        Object.assign(savedSettings, settings);
+        savedSettings.vaultFiles = [];
+        game.user.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS, savedSettings);
     }
 
     static async createIndexFile(settings, linkDictionary, rootFolder) {
         const indexJournalName = "Index";
         let indexJournal = game.journal.find(j => j.name == indexJournalName && j.data.folder == rootFolder?.id);
-        let directories = [...new Set(linkDictionary.map(d => LavaFlow.getIndexTopDirectory(d)))];
+        let mdDictionary = linkDictionary.filter(d => d.fileInfo instanceof MDFileInfo);
+        let directories = [...new Set(mdDictionary.map(d => LavaFlow.getIndexTopDirectory(d)))];
         directories.sort();
         let content = "";
         for (let j = 0; j < directories.length; j++) {
             content += `<h1>${directories[j]}</h1>`;
-            let journals = linkDictionary.filter(d => LavaFlow.getIndexTopDirectory(d) == directories[j]).map(d => d.journal);
+            let journals = mdDictionary.filter(d => LavaFlow.getIndexTopDirectory(d) == directories[j]).map(d => d.journal);
             content += "<ul>" + journals.map(j => `<li>${j.link}</li>`).join('\n') + "</ul>";
         }
         if (indexJournal)
@@ -113,7 +124,7 @@ class LavaFlow {
             let journal = linkDictionary[i].journal;
 
             let linkedJournals = linkDictionary.filter(d => d != linkDictionary[i]
-                && d.fileInfo.links.filter(l => l.match(fileInfo.getKeyRegex())).length > 0)
+                && d.fileInfo.links.filter(l => l.match(fileInfo.getLinkRegex())).length > 0)
                 .map(d => d.journal);
 
             if (linkedJournals.length > 0) {
@@ -144,9 +155,19 @@ class LavaFlow {
     }
 
     static async importFile(file, settings, rootFolder) {
-        let fileInfo = new MDFileInfo(file?.webkitRelativePath);
-        if (!file || fileInfo.directories[0] == ".obsidian" || fileInfo.fileExtension != "md")
+        if (!file || file.name == ".obsidian")
             return;
+        let fileNameParts = file.name.split('.');
+        let fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
+        if (fileExtension == "md")
+            return await this.importMarkdownFile(file, settings, rootFolder);
+        else if (settings.importNonMarkdown)
+            return this.importOtherFile(file, settings);
+        return;
+    }
+
+    static async importMarkdownFile(file, settings, rootFolder) {
+        let fileInfo = new MDFileInfo(file?.webkitRelativePath);
         let parentFolder = rootFolder;
         for (let i = 0; i < fileInfo.directories.length; i++) {
             let newFolder = await LavaFlow.createOrGetFolder(fileInfo.directories[i], parentFolder?.id);
@@ -171,8 +192,20 @@ class LavaFlow {
         return { fileInfo: fileInfo, journal: journal };
     }
 
+    static async importOtherFile(file, settings) {
+        let source = settings.useS3 ? "s3" : "data";
+        let body = settings.useS3 ? { bucket: settings.s3Bucket } : {};
+        FilePicker.upload(source, settings.mediaFolder, file, body);
+        let path = `${settings.mediaFolder}/${file.name}`;
+        path.replace('//', '/');
+        if (settings.useS3)
+            path = "https://" + settings.s3Bucket + ".s3." + settings.s3Region + ".amazonaws.com/" + path;
+        let fileInfo = new OtherFileInfo(file.webkitRelativePath, path);
+        return { fileInfo: fileInfo };
+    }
+
     static decodeHtml(html) {
-        var txt = document.createElement("textarea");
+        let txt = document.createElement("textarea");
         txt.innerHTML = html;
         return txt.value;
     }
@@ -202,19 +235,23 @@ class LavaFlow {
     static async getFileContent(file) {
         let markdown = await file.text();
         let converter = new showdown.Converter({
-            tables: 'true',
-            tablesHeaderId: 'true'
+            tables: true,
+            tablesHeaderId: true,
+            strikethrough: true,
+            tasklists: true
         });
         return converter.makeHtml(markdown);
     }
 
-    static async updateLinks(fileInfo, journal, allJournals) {
-        let mdKeyRegex = fileInfo.getKeyRegex();
+    static async updateLinks(fileInfo, replacementLink, allJournals) {
+        let linkRegex = fileInfo.getLinkRegex();
+
         for (let i = 0; i < allJournals.length; i++) {
             let compareJournal = allJournals[i];
             if (!compareJournal)
                 continue;
-            let newContent = compareJournal.data.content.replace(mdKeyRegex, journal.link);
+
+            let newContent = compareJournal.data.content.replace(linkRegex, replacementLink);
             if (newContent != compareJournal.data.content)
                 await LavaFlow.updateJournal(compareJournal, newContent);
         }
@@ -223,7 +260,6 @@ class LavaFlow {
 
 class LavaFlowSettings {
     rootFolderName = null
-    useS3 = false
     vaultFiles = []
     imageDirectory = null
     overwrite = true
@@ -232,10 +268,11 @@ class LavaFlowSettings {
     playerObserve = false
     createIndexFile = false
     createBacklinks = true
-
-    constructor() {
-        this.rootFolderName = game.user.getFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTFOLDER);
-    }
+    importNonMarkdown = true
+    useS3 = false
+    s3Bucket = null
+    s3Region = null
+    mediaFolder = null
 }
 
 class LavaFlowConfig extends FormApplication {
@@ -243,11 +280,11 @@ class LavaFlowConfig extends FormApplication {
         const defaults = super.defaultOptions;
 
         const overrides = {
-            height: '400px',
+            height: '500px',
             id: `${LavaFlow.ID}-form`,
             template: LavaFlow.TEMPLATES.IMPORTDIAG,
             title: 'Import Obsidian MD Vault',
-            importSettings: new LavaFlowSettings()
+            importSettings: game.user.getFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS) ?? new LavaFlowSettings()
         };
 
         const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
@@ -259,7 +296,7 @@ class LavaFlowConfig extends FormApplication {
 
     async _updateObject(event, formData) {
         formData.vaultFiles = this.vaultFiles;
-        await LavaFlow.importVault(event, formData);
+        LavaFlow.importVault(event, formData);
     }
 
     getData(options) {
@@ -268,16 +305,27 @@ class LavaFlowConfig extends FormApplication {
 
     activateListeners(html) {
         let prefix = LavaFlowConfig.defaultOptions.importSettings.idPrefix;
-        let overwriteID = `#${prefix}overwrite`;
-        $(overwriteID).change(function () {
-            let divID = `#${prefix}ignoreDuplicateDiv`;
-            $(divID).toggle(!this.checked)
-        });
+
+        this.setInverseToggle(`#${prefix}overwrite`, `#${prefix}ignoreDuplicateDiv`);
+        this.setToggle(`#${prefix}importNonMarkdown`, `#${prefix}nonMarkdownOptions`);
+        this.setToggle(`#${prefix}useS3`, `#${prefix}s3Options`);
 
         let vaultFilesID = `#${prefix}vaultFiles`;
         let config = this;
         $(vaultFilesID).change(function (event) {
             config.vaultFiles = event.target.files;
+        });
+    }
+
+    setInverseToggle(checkBoxID, toggleDivID) {
+        $(checkBoxID).change(function () {
+            $(toggleDivID).toggle(!this.checked);
+        });
+    }
+
+    setToggle(checkBoxID, toggleDivID) {
+        $(checkBoxID).change(function () {
+            $(toggleDivID).toggle(this.checked);
         });
     }
 }
@@ -287,11 +335,11 @@ function escapeRegExp(string) {
 }
 
 class MDFileInfo {
-    filePath
+    filePath = null
     directories = []
-    fileNameNoExt
-    fileExtension
-    fullKey
+    fileNameNoExt = null
+    fileExtension = null
+    fullKey = null
     links = []
 
     constructor(filePath) {
@@ -301,7 +349,7 @@ class MDFileInfo {
         this.filePath = filePath;
 
         let pathParts = filePath.split("/");
-        pathParts.shift(); // Remove fault folder name
+        pathParts.shift(); // Remove vault folder name
         let fileNameWithExt = pathParts[pathParts.length - 1];
         pathParts.pop(); // Remove fileName;
         this.directories = pathParts;
@@ -315,7 +363,25 @@ class MDFileInfo {
         this.fullKey = `${this.directories.join('/')}/${this.fileNameNoExt}`;
     }
 
-    getKeyRegex() {
+    getLinkRegex() {
         return new RegExp(`\\[\\[([^\\/\\]]+\\/)*${this.fileNameNoExt}\\]\\]`, 'g');
     }
+}
+
+class OtherFileInfo {
+    originalFilePath = null
+    uploadPath = null
+    imgElement = null
+
+    constructor(originalFilePath, uploadPath) {
+        this.originalFilePath = originalFilePath;
+        this.uploadPath = uploadPath;
+        this.imgElement = `<img src="${this.uploadPath}">`;
+    }
+
+    getLinkRegex() {
+        return new RegExp(`!\\[\\[${this.originalFilePath}\\]\\]`, 'g');
+    }
+
+
 }
