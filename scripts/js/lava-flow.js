@@ -155,7 +155,7 @@ class LavaFlow {
     }
 
     static async importFile(file, settings, rootFolder) {
-        if (!file || file.name == ".obsidian")
+        if (!file || file.webkitRelativePath.includes(".obsidian") || file.webkitRelativePath.includes(".trash"))
             return;
         let fileNameParts = file.name.split('.');
         let fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
