@@ -242,7 +242,7 @@ class LavaFlow {
         });
         return converter.makeHtml(markdown);
     }
-
+    
     static async updateLinks(fileInfo, replacementLink, allJournals) {
         let linkRegex = fileInfo.getLinkRegex();
 
@@ -330,10 +330,6 @@ class LavaFlowConfig extends FormApplication {
     }
 }
 
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
 class MDFileInfo {
     filePath = null
     directories = []
@@ -364,7 +360,7 @@ class MDFileInfo {
     }
 
     getLinkRegex() {
-        return new RegExp(`\\[\\[([^\\/\\]]+\\/)*${this.fileNameNoExt}\\]\\]`, 'g');
+        return new RegExp(`\\[\\[([^\\/\\]]+\\/)*${this.fileNameNoExt}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi');
     }
 }
 
@@ -380,8 +376,6 @@ class OtherFileInfo {
     }
 
     getLinkRegex() {
-        return new RegExp(`!\\[\\[${this.originalFilePath}\\]\\]`, 'g');
+        return new RegExp(`!\\[\\[${this.originalFilePath}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi');
     }
-
-
 }
