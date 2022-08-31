@@ -1,6 +1,9 @@
 # Lava Flow
 This module allows you to import your notes from Obsidian MD into Foundry journal entries.
 
+## V10
+This module is not yet compatible with the Journal changes in v10. It is a [known issue](https://github.com/Praxxian/lava-flow/issues/19). I hope to fix this very soon!
+
 ## Features
 - Select your whole vault or even just one folder within it. Or even just any folder with .md files.
 - Uses [showdown](https://github.com/showdownjs/showdown) to convert markdown to HTML.
