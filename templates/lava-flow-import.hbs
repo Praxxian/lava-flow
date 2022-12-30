@@ -50,7 +50,7 @@
 
     <div id="{{idPrefix}}nonMarkdownOptions" {{#if importNonMarkdown}}{{else}}style="display: none;" {{/if}}>
         <div class="form-group"
-            title="The folder on the server where non-markdown files will be uploaded. If using S3, this is the folder path in the bucket.">
+            title="The folder on the server where non-markdown files will be uploaded. If using S3, this is the folder path in the bucket. Defaults to 'img' if empty.">
             <label for="mediaFolder">Upload Path <i class="far fa-question-circle"></i></label>
             <input type='text' name="mediaFolder" placeholder="images/lavaflow" value="{{mediaFolder}}" />
         </div>
