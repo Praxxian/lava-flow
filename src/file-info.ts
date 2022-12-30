@@ -4,11 +4,15 @@ export abstract class FileInfo {
   directories: string[] = [];
   journal: JournalEntry | null = null;
   extension: string | null = null;
+  fileNameNoExt: string;
 
   abstract getLinkRegex(): RegExp[];
+  abstract getLink(): string | null;
 
   constructor(file: File) {
     this.originalFile = file;
+    const nameParts = file.name.split('.');
+    this.fileNameNoExt = nameParts[0];
   }
 
   static get(file: File): FileInfo {
@@ -28,6 +32,7 @@ export abstract class FileInfo {
       prefixes.push(fileName);
       this.keys.push(prefixes.join('/'));
     }
+    this.keys.push(fileName);
   }
 
   isHidden(): boolean {
@@ -40,26 +45,24 @@ export abstract class FileInfo {
 }
 
 export class MDFileInfo extends FileInfo {
-  fileNameNoExt: string;
   links: string[] = [];
-  foundryTag: string;
 
   constructor(file: File) {
     super(file);
-    const nameParts = file.name.split('.');
-    this.fileNameNoExt = nameParts[0];
     this.createKeys(this.fileNameNoExt);
-    this.foundryTag = `@JournalEntry[${this.fileNameNoExt}]`;
   }
 
   getLinkRegex(): RegExp[] {
     return this.keys.map((k) => new RegExp(`\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
   }
+
+  getLink(): string | null {
+    return this.journal?.link ?? null;
+  }
 }
 
 export class OtherFileInfo extends FileInfo {
   uploadPath: string | null = null;
-  imgElement: HTMLElement | null = null;
 
   constructor(file: File) {
     super(file);
@@ -68,5 +71,9 @@ export class OtherFileInfo extends FileInfo {
 
   getLinkRegex(): RegExp[] {
     return this.keys.map((k) => new RegExp(`!\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+  }
+
+  getLink(): string | null {
+    return `![${this.originalFile.name}](${this.uploadPath ?? ''})`;
   }
 }

@@ -74,9 +74,8 @@ export default class LavaFlow {
         files.push(file);
       }
 
-      // TODO might only need for images
-      // const allJournals = files.filter((f) => f.journal !== null).map((f) => f.journal) as JournalEntry[];
-      // for (let i = 0; i < files.length; i++) await LavaFlow.updateLinks(files[i], allJournals);
+      const allJournals = files.filter((f) => f.journal !== null).map((f) => f.journal) as JournalEntry[];
+      for (let i = 0; i < files.length; i++) await LavaFlow.updateLinks(files[i], allJournals);
 
       if (settings.createIndexFile || settings.createBacklinks) {
         const mdFiles = files.filter((f) => f instanceof MDFileInfo) as MDFileInfo[];
@@ -180,12 +179,13 @@ export default class LavaFlow {
         // v10 not supported by foundry-vtt-types yet
         // @ts-expect-error
         const page = otherFileInfo.journal?.pages?.contents[0];
-        if (page !== undefined && page !== null && (page.text.markdown as string).includes(fileInfo.foundryTag))
+        const link = fileInfo.getLink();
+        if (page !== undefined && page !== null && link !== null && (page.text.markdown as string).includes(link))
           backlinkFiles.push(otherFileInfo);
       }
       if (backlinkFiles.length > 0) {
         backlinkFiles.sort((a, b) => a.fileNameNoExt.localeCompare(b.fileNameNoExt));
-        const backLinkList = backlinkFiles.map((b) => `- ${b.foundryTag}`).join('\r\n');
+        const backLinkList = backlinkFiles.map((b) => `- ${b.getLink() ?? ''}`).join('\r\n');
         // v10 not supported by foundry-vtt-types yet
         // @ts-expect-error
         const page = fileInfo.journal.pages.contents[0];
@@ -264,38 +264,21 @@ export default class LavaFlow {
 
   static async getFileContent(file: FileInfo): Promise<string> {
     const originalText = await file.originalFile.text();
-    const linkRegex = /(\[\[([^\]|]+)(\|([^\]]+))?\]\])/g;
-    const links = [...originalText.matchAll(linkRegex)];
-    let linkedText = originalText;
-    links.forEach((link) => {
-      const fullLink = link[0];
-      const path = link[2].trim().split('/');
-      const documentName = path[path.length - 1];
-      const alias = link[4];
-      const aliasTag = alias !== undefined ? `{${alias.trim()}}` : '';
-      const tag = `@JournalEntry[${documentName}]${aliasTag}`;
-      linkedText = linkedText.replace(fullLink, tag);
-    });
-    return linkedText;
+    return originalText;
   }
 
   static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
-    if (fileInfo.journal === undefined || fileInfo.journal === null) return;
-
     const linkPatterns = fileInfo.getLinkRegex();
 
     for (let i = 0; i < allJournals.length; i++) {
-      const compareJournal = allJournals[i];
+      // v10 not supported by foundry-vtt-types yet
+      // @ts-expect-error
+      const comparePage = allJournals[i].pages.contents[0];
 
-      for (let i = 0; i < linkPatterns.length; i++) {
-        // TODO other files use imgelement
-        // v10 not supported by foundry-vtt-types yet
-        // @ts-expect-error
-        const newContent = compareJournal.content.replace(linkPatterns[i], fileInfo.journal.link);
-        // v10 not supported by foundry-vtt-types yet
-        // @ts-expect-error
-        if (newContent !== compareJournal.content) {
-          await LavaFlow.updateJournal(compareJournal, newContent);
+      for (let j = 0; j < linkPatterns.length; j++) {
+        const newContent = comparePage.text.markdown.replace(linkPatterns[j], fileInfo.getLink());
+        if (newContent !== comparePage.text.markdown) {
+          await LavaFlow.updateJournal(allJournals[i], newContent);
           break;
         }
       }
