@@ -33,8 +33,19 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 ## Known Issues
 
 - Folder depth is limited to Foundry's folder depth limit.
-- Obsidian Canvas files are not supported.
+- Obsidian Canvas files are not supported. These will be ignored.
 - Not all Obsidian markdown is supported in Foundry.
+  - Callouts are formatted as block quotes.
+  - Code blocks work, but do not have syntax highlighting.
+  - Comments
+  - Diagrams
+  - Embeds
+  - Footnotes
+  - Highlighting
+  - Resizing images
+  - Obsidian URI links: you should not need these anyway since you would not want to link from the Foundry server's file system. Us normal `[[Links]]`.
+  - Math using Mathjax.
+  - Tasks are formatted as lists with `[x]` instead of checkboxes. Still readable, but not as clean.
 
 ## License
 
