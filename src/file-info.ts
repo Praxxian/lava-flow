@@ -25,7 +25,6 @@ export abstract class FileInfo {
 
   createKeys(fileName: string): void {
     this.directories = this.originalFile.webkitRelativePath.split('/');
-    this.directories.shift(); // Remove root folder name
     this.directories.pop(); // Remove file name
     for (let i = 0; i < this.directories.length; i++) {
       const prefixes = this.directories.slice(i);
