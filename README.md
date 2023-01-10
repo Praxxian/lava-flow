@@ -13,6 +13,13 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 - Optionally import your images and have them embedded in your journal entries.
 - All created folders have the flag "lavaFlowFolder" and likewise journal entries will have the flag "lavaFlowJournalEntry".
 
+## Compatibility Matrix
+I highly recommend using Foundry v10, as the latest version of this module will have the best functionality and latest bug fixes.
+| Lava Flow Version | Foundry Version |
+| -- | -- |
+| v1.* | v9 |
+| v2.* | v10 |
+
 ## How to Use
 
 1. Under the Journal tab, there is an "Import Obsidian Vault" button.\
@@ -34,6 +41,11 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 
 - Folder depth is limited to Foundry's folder depth limit.
 - Obsidian Canvas files are not supported. These will be ignored.
+- Foundry Desktop app: Issues with selecting a folder and having no files import
+  - Older versions of Electron, which the Foundry app uses, have a bug with selecting folders.
+  - This impacts all v9 installs.
+  - This _can_ impact v10 if you previously had a v9 install and upgraded Foundry via the app instead of through a v10 installer.
+  - If you experience this in v10, try installing using a new v10 installer. Please take all appropriate caution, such as backing up your user data, as you would with any upgrade.
 - Not all Obsidian markdown is supported in Foundry.
   - Callouts are formatted as block quotes.
   - Code blocks work, but do not have syntax highlighting.
