@@ -269,17 +269,16 @@ export default class LavaFlow {
 
   static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
     const linkPatterns = fileInfo.getLinkRegex();
-
     for (let i = 0; i < allJournals.length; i++) {
       // v10 not supported by foundry-vtt-types yet
       // @ts-expect-error
       const comparePage = allJournals[i].pages.contents[0];
 
       for (let j = 0; j < linkPatterns.length; j++) {
-        const newContent = comparePage.text.markdown.replace(linkPatterns[j], fileInfo.getLink());
+        const pattern = linkPatterns[j];
+        const newContent = comparePage.text.markdown.replace(pattern, fileInfo.getLink());
         if (newContent !== comparePage.text.markdown) {
           await LavaFlow.updateJournal(allJournals[i], newContent);
-          break;
         }
       }
     }

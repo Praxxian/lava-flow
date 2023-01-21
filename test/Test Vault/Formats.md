@@ -95,7 +95,10 @@ in a new line to produce an horizontal bar.
 ![[obsidian_banner.png]]
 ### Resized
 ![[obsidian_banner.png|200]]
-
+### Name with space
+![[obsidian banner.png]]
+### Alt text
+![Some alt text](img/obsidian_banner.png)
 # Inline code
 Text inside `backticks` on a line will be formatted like code.
 

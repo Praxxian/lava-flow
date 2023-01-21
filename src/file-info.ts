@@ -69,10 +69,12 @@ export class OtherFileInfo extends FileInfo {
   }
 
   getLinkRegex(): RegExp[] {
-    return this.keys.map((k) => new RegExp(`!\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    const obsidianPatterns = this.keys.map((k) => new RegExp(`!\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    const altTextPatterns = this.keys.map((k) => new RegExp(`!\\[[^\\]]+\\]\\(${k}\\)`, 'gi'));
+    return obsidianPatterns.concat(altTextPatterns);
   }
 
   getLink(): string | null {
-    return `![${this.originalFile.name}](${this.uploadPath ?? ''})`;
+    return `![${this.originalFile.name}](${encodeURI(this.uploadPath ?? '')})`;
   }
 }
