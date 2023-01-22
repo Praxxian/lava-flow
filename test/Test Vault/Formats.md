@@ -89,7 +89,7 @@ in a new line to produce an horizontal bar.
 # Images
 ## From URL
 ![Obsidian](https://obsidian.md/images/banner.png)
-### Resized
+### From URL, Resized
 ![Obsidian|200](https://obsidian.md/images/banner.png)
 ## From Vault
 ![[obsidian_banner.png]]
@@ -99,6 +99,10 @@ in a new line to produce an horizontal bar.
 ![[obsidian banner.png]]
 ### Alt text
 ![Some alt text](img/obsidian_banner.png)
+### Resized Width Only
+![[obsidian_banner.png|200]]
+### Resized 200x200
+![[obsidian_banner.png|200x200]]
 # Inline code
 Text inside `backticks` on a line will be formatted like code.
 
