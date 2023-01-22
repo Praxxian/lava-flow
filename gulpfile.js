@@ -1,6 +1,7 @@
+/* eslint-disable no-extend-native */
 const gulp = require('gulp');
 const path = require('path');
-var fs = require('fs');
+const fs = require('fs');
 const del = require('del');
 const ts = require('gulp-typescript');
 const sm = require('gulp-sourcemaps');
@@ -18,13 +19,13 @@ const LANG = 'lang/';
 const TEMPLATES = 'templates/';
 const CSS = 'css/';
 
-var PACKAGE = JSON.parse(fs.readFileSync('package.json'));
+let PACKAGE = JSON.parse(fs.readFileSync('package.json'));
 function reloadPackage(cb) {
   PACKAGE = JSON.parse(fs.readFileSync('package.json'));
   cb();
 }
 function DEV_DIST() {
-  return path.join(PACKAGE.devDir, PACKAGE.name) + '/';
+  return `${path.join(PACKAGE.devDir, PACKAGE.name)}/`;
 }
 
 String.prototype.replaceAll = function (pattern, replace) {
@@ -48,7 +49,7 @@ function plog(message) {
  */
 function buildSource(keepSources, minifySources = false, output = null) {
   return () => {
-    var stream = gulp.src(SOURCE + GLOB);
+    let stream = gulp.src(SOURCE + GLOB);
     if (keepSources) stream = stream.pipe(sm.init());
     stream = stream.pipe(ts.createProject('tsconfig.json')());
     if (keepSources) stream = stream.pipe(sm.write());
@@ -72,7 +73,7 @@ exports.step_buildSourceMin = buildSource(false, true);
  * Builds the module manifest based on the package, sources, and css.
  */
 function buildManifest(output = null) {
-  const files = []; // Collector for all the file paths
+  let files = []; // Collector for all the file paths
   return (cb) =>
     gulp
       .src(PACKAGE.main) // collect the source files
@@ -81,10 +82,12 @@ function buildManifest(output = null) {
       .on('data', (file) => files.push(path.relative(file.cwd, file.path))) // Collect all the file paths
       .on('end', () => {
         // output the filepaths to the module.json
-        if (files.length == 0) throw Error('No files found in ' + SOURCE + GLOB + ' or ' + CSS + GLOB);
+        if (files.length === 0) throw Error(`No files found in ${SOURCE}${GLOB} or ${CSS}${GLOB}`);
+        files = files.map((f) => f.replaceAll('\\', '/')); // Replace windows paths
         const js = files.filter((e) => e.endsWith('js')); // split the CSS and JS files
         const css = files.filter((e) => e.endsWith('css'));
         fs.readFile('module.json', (err, data) => {
+          if (err) throw err;
           const module = data
             .toString() // Inject the data into the module.json
             .replaceAll('{{name}}', PACKAGE.name)
@@ -93,7 +96,7 @@ function buildManifest(output = null) {
             .replaceAll('{{description}}', PACKAGE.description)
             .replace('"{{sources}}"', stringify(js, null, '\t').replaceAll('\n', '\n\t'))
             .replace('"{{css}}"', stringify(css, null, '\t').replaceAll('\n', '\n\t'));
-          fs.writeFile((output || DIST) + 'module.json', module, cb); // save the module to the distribution directory
+          fs.writeFile(`${output || DIST}module.json`, module, cb); // save the module to the distribution directory
         });
       });
 }
@@ -118,15 +121,15 @@ function outputMetaFiles(output = null) {
 function compressDistribution() {
   return gulp.series(
     // Copy files to folder with module's name
-    () => gulp.src(DIST + GLOB).pipe(gulp.dest(DIST + `${PACKAGE.name}/${PACKAGE.name}`)),
+    () => gulp.src(DIST + GLOB).pipe(gulp.dest(`${DIST}${PACKAGE.name}/${PACKAGE.name}`)),
     // Compress the new folder into a ZIP and save it to the `bundle` folder
     () =>
       gulp
-        .src(DIST + PACKAGE.name + '/' + GLOB)
-        .pipe(zip(PACKAGE.name + '.zip'))
+        .src(`${DIST + PACKAGE.name}/${GLOB}`)
+        .pipe(zip(`${PACKAGE.name}.zip`))
         .pipe(gulp.dest(BUNDLE)),
     // Copy the module.json to the bundle directory
-    () => gulp.src(DIST + '/module.json').pipe(gulp.dest(BUNDLE)),
+    () => gulp.src(`${DIST}/module.json`).pipe(gulp.dest(BUNDLE)),
     // Cleanup by deleting the intermediate module named folder
     pdel(DIST + PACKAGE.name),
   );
@@ -203,7 +206,7 @@ exports.devWatch = function () {
   gulp.watch(
     SOURCE + GLOB,
     gulp.series(
-      plog('deleting: ' + devDist + SOURCE + GLOB),
+      plog(`deleting: ${devDist}${SOURCE}${GLOB}`),
       pdel(devDist + SOURCE + GLOB, { force: true }),
       buildSource(true, false, devDist),
       plog('sources done.'),
