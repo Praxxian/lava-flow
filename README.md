@@ -54,8 +54,7 @@ I highly recommend using Foundry v10, as the latest version of this module will 
   - Embeds
   - Footnotes
   - Highlighting
-  - Resizing images
-  - Obsidian URI links: you should not need these anyway since you would not want to link from the Foundry server's file system. Us normal `[[Links]]`.
+  - Obsidian URI links: you should not need these anyway since you would not want to link from the Foundry server's file system. Use normal `[[Links]]`.
   - Math using Mathjax.
   - Tasks are formatted as lists with `[x]` instead of checkboxes. Still readable, but not as clean.
 

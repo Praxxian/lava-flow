@@ -269,17 +269,33 @@ export default class LavaFlow {
 
   static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
     const linkPatterns = fileInfo.getLinkRegex();
-
     for (let i = 0; i < allJournals.length; i++) {
       // v10 not supported by foundry-vtt-types yet
       // @ts-expect-error
       const comparePage = allJournals[i].pages.contents[0];
 
       for (let j = 0; j < linkPatterns.length; j++) {
-        const newContent = comparePage.text.markdown.replace(linkPatterns[j], fileInfo.getLink());
-        if (newContent !== comparePage.text.markdown) {
+        const pattern = linkPatterns[j];
+        const linkMatches: RegExpMatchArray = comparePage.text.markdown.match(pattern);
+        if (linkMatches === null) continue;
+        for (let k = 0; k < linkMatches.length; k++) {
+          let link = fileInfo.getLink();
+          if (link === null) continue;
+          const linkMatch = linkMatches[k];
+          if (fileInfo instanceof OtherFileInfo) {
+            const resizeMatches = linkMatch.match(/\|\d+(x\d+)?\]/gi);
+            if (resizeMatches !== null && resizeMatches.length > 0) {
+              const dimensions = resizeMatches[0]
+                .replace(/(\||\])/gi, '')
+                .toLowerCase()
+                .split('x');
+              if (dimensions.length === 1) dimensions.push('*');
+              const dimensionsString = dimensions.join('x');
+              link = link.replace(/\)$/gi, ` =${dimensionsString})`);
+            }
+          }
+          const newContent = comparePage.text.markdown.replace(linkMatch, link);
           await LavaFlow.updateJournal(allJournals[i], newContent);
-          break;
         }
       }
     }
