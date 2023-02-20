@@ -49,7 +49,7 @@ export default class LavaFlow {
     button.on('click', function () {
       LavaFlow.createForm();
     });
-    html.find('.directory-header').prepend(button);
+    html.find('.header-actions:first-child').after(button);
     LavaFlow.log('Creating UI elements complete.', false);
   }
 
