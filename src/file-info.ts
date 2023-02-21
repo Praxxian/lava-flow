@@ -52,7 +52,7 @@ export class MDFileInfo extends FileInfo {
   }
 
   getLinkRegex(): RegExp[] {
-    return this.keys.map((k) => new RegExp(`\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
   }
 
   getLink(): string | null {

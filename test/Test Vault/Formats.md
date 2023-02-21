@@ -119,6 +119,8 @@ This shouldn't work because it uses file paths. These shouldn't be used in Found
 ## Absolute Links
 Apples the fruit: [[My Folder/Fruits/Apple]]
 Apples the company: [[My Folder/Companies/Apple]]
+## Header links
+Link to the Apple company: [[My Folder/Companies/Apple#Products|Apple Products]]
 # Lists
 - Item 1
 - Item 2
