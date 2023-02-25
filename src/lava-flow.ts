@@ -263,7 +263,9 @@ export default class LavaFlow {
   }
 
   static async getFileContent(file: FileInfo): Promise<string> {
-    const originalText = await file.originalFile.text();
+    let originalText = await file.originalFile.text();
+    if (originalText !== null && originalText.length > 6)
+      originalText = originalText.replace(/^---\r?\n([^-].*\r?\n)+---(\r?\n)+/, '');
     return originalText;
   }
 
