@@ -56,7 +56,7 @@ export class MDFileInfo extends FileInfo {
   }
 
   getLink(alias: string | null = null): string | null {
-    if (alias === null) return this.journal?.link ?? null;
+    if (alias === null || alias.length < 1) return this.journal?.link ?? null;
     else return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${alias}}`;
   }
 }

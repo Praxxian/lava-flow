@@ -120,7 +120,9 @@ This shouldn't work because it uses file paths. These shouldn't be used in Found
 Apples the fruit: [[My Folder/Fruits/Apple]]
 Apples the company: [[My Folder/Companies/Apple]]
 ## Header links
-Link to the Apple company: [[My Folder/Companies/Apple#Products|Apple Products]]
+Link to the Apple producst w/alias: [[My Folder/Companies/Apple#Products|Apple Products]]
+
+Link to the Apple producst w/o alias: [[My Folder/Companies/Apple#Products]]
 # Lists
 - Item 1
 - Item 2

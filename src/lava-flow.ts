@@ -276,14 +276,14 @@ export default class LavaFlow {
 
       for (let j = 0; j < linkPatterns.length; j++) {
         const pattern = linkPatterns[j];
-        const linkMatches: RegExpMatchArray = comparePage.text.markdown.match(pattern);
+        const linkMatches = (comparePage.text.markdown as string).matchAll(pattern);
         if (linkMatches === null) continue;
-        for (let k = 0; k < linkMatches.length; k++) {
-          let link = fileInfo.getLink();
+        for (const linkMatch of linkMatches) {
+          const alias = (linkMatch[2] ?? '|').split('|')[1].trim();
+          let link = fileInfo.getLink(alias);
           if (link === null) continue;
-          const linkMatch = linkMatches[k];
           if (fileInfo instanceof OtherFileInfo) {
-            const resizeMatches = linkMatch.match(/\|\d+(x\d+)?\]/gi);
+            const resizeMatches = linkMatch[0].match(/\|\d+(x\d+)?\]/gi);
             if (resizeMatches !== null && resizeMatches.length > 0) {
               const dimensions = resizeMatches[0]
                 .replace(/(\||\])/gi, '')
@@ -294,7 +294,7 @@ export default class LavaFlow {
               link = link.replace(/\)$/gi, ` =${dimensionsString})`);
             }
           }
-          const newContent = comparePage.text.markdown.replace(linkMatch, link);
+          const newContent = comparePage.text.markdown.replace(linkMatch[0], link);
           await LavaFlow.updateJournal(allJournals[i], newContent);
         }
       }
