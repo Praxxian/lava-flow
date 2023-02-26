@@ -165,7 +165,7 @@ export default class LavaFlow {
   }
 
   static getIndexTopDirectory(fileInfo: FileInfo): string {
-    return fileInfo.directories.length > 0 ? fileInfo.directories[0] : 'Uncatergorized';
+    return fileInfo.directories.length > 1 ? fileInfo.directories[1] : 'Uncatergorized';
   }
 
   static async createBacklinks(files: MDFileInfo[]): Promise<void> {
