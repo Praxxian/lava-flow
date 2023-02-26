@@ -1,3 +1,6 @@
+---
+tags: foo,bar
+---
 Most of these were grabbed from the Obsidian Sandbox vault.
 # Blockquote
 >This is a blockquote.
