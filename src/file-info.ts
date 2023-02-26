@@ -7,7 +7,7 @@ export abstract class FileInfo {
   fileNameNoExt: string;
 
   abstract getLinkRegex(): RegExp[];
-  abstract getLink(): string | null;
+  abstract getLink(alias?: string | null): string | null;
 
   constructor(file: File) {
     this.originalFile = file;
@@ -52,11 +52,12 @@ export class MDFileInfo extends FileInfo {
   }
 
   getLinkRegex(): RegExp[] {
-    return this.keys.map((k) => new RegExp(`\\[\\[${k}(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
   }
 
-  getLink(): string | null {
-    return this.journal?.link ?? null;
+  getLink(alias: string | null = null): string | null {
+    if (alias === null || alias.length < 1) return this.journal?.link ?? null;
+    else return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${alias}}`;
   }
 }
 
