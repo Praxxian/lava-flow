@@ -14,11 +14,12 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 - All created folders have the flag "lavaFlowFolder" and likewise journal entries will have the flag "lavaFlowJournalEntry".
 
 ## Compatibility Matrix
+
 I highly recommend using Foundry v10, as the latest version of this module will have the best functionality and latest bug fixes.
 | Lava Flow Version | Foundry Version |
 | -- | -- |
-| v1.* | v9 |
-| v2.* | v10 |
+| v1.\* | v9 |
+| v2.\* | v10 |
 
 ## How to Use
 
@@ -51,7 +52,7 @@ I highly recommend using Foundry v10, as the latest version of this module will 
   - Code blocks work, but do not have syntax highlighting.
   - Comments
   - Diagrams
-  - Embeds
+  - Embeds: These are still linked, but the text is not populated within the page's content.
   - Footnotes
   - Highlighting
   - Obsidian URI links: you should not need these anyway since you would not want to link from the Foundry server's file system. Use normal `[[Links]]`.
