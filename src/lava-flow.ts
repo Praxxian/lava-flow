@@ -266,6 +266,7 @@ export default class LavaFlow {
     let originalText = await file.originalFile.text();
     if (originalText !== null && originalText.length > 6)
       originalText = originalText.replace(/^---\r?\n([^-].*\r?\n)+---(\r?\n)+/, '');
+    originalText = originalText.replace(/^#[0-9A-Za-z]+\b/gm, ' $&');
     return originalText;
   }
 
