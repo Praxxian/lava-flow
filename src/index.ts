@@ -1,8 +1,8 @@
 import LavaFlow from './lava-flow.js';
 
-Hooks.on('renderSidebarTab', function (app: Application, html: JQuery) {
+Hooks.on('renderJournalDirectory', function (app: Application, html: JQuery) {
   try {
-    LavaFlow.createUIElements(app, html);
+    LavaFlow.createUIElements(html);
   } catch (e) {
     LavaFlow.errorHandling(e);
   }

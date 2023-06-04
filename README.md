@@ -20,6 +20,7 @@ I highly recommend using Foundry v10, as the latest version of this module will 
 | -- | -- |
 | v1.\* | v9 |
 | v2.\* | v10 |
+| v3.\* | v11 |
 
 ## How to Use
 
@@ -45,8 +46,8 @@ I highly recommend using Foundry v10, as the latest version of this module will 
 - Foundry Desktop app: Issues with selecting a folder and having no files import
   - Older versions of Electron, which the Foundry app uses, have a bug with selecting folders.
   - This impacts all v9 installs.
-  - This _can_ impact v10 if you previously had a v9 install and upgraded Foundry via the app instead of through a v10 installer.
-  - If you experience this in v10, try installing using a new v10 installer. Please take all appropriate caution, such as backing up your user data, as you would with any upgrade.
+  - This _can_ impact v10 and newer if you previously had a v9 install and upgraded Foundry via the app instead of through a v10 installer.
+  - If you experience this in v10+, try installing using a new installer. Please take all appropriate caution, such as backing up your user data, as you would with any upgrade.
 - Not all Obsidian markdown is supported in Foundry.
   - Callouts are formatted as block quotes.
   - Code blocks work, but do not have syntax highlighting.

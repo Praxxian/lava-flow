@@ -37,8 +37,8 @@ export default class LavaFlow {
     return (game as Game).user?.isGM ?? false;
   }
 
-  static createUIElements(app: Application, html: JQuery): void {
-    if (!LavaFlow.isGM() || app.options.id !== 'journal') return;
+  static createUIElements(html: JQuery): void {
+    if (!LavaFlow.isGM()) return;
 
     LavaFlow.log('Creating UI elements...', false);
     const className = `${LavaFlow.ID}-btn`;
