@@ -2,6 +2,7 @@ import LavaFlow from './lava-flow.js';
 
 export class LavaFlowSettings {
   rootFolderName: string | null = null;
+  createRootFolder: boolean = true;
   vaultFiles: FileList | null = null;
   imageDirectory: string | null = null;
   overwrite: boolean = true;

@@ -110,7 +110,8 @@ export default class LavaFlow {
     rootFolder: Folder | null,
   ): Promise<void> {
     let parentFolder = rootFolder;
-    for (let i = 0; i < file.directories.length; i++) {
+    let initIndex = (settings.createRootFolder) ? 0 : 1
+    for (let i = initIndex; i < file.directories.length; i++) {
       const newFolder = await createOrGetFolder(file.directories[i], parentFolder?.id);
       parentFolder = newFolder;
     }
