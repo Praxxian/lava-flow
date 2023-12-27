@@ -11,6 +11,11 @@
         <input type="file" id="{{idPrefix}}vaultFiles" webkitdirectory directory multiple required />
     </div>
     <div class="form-group"
+        title="If the import should skip the root vault folder or create it in Foundry.">
+        <label>Create root folder? <i class="far fa-question-circle"></i></label>
+        <input type="checkbox" name="createRootFolder" id="{{idPrefix}}createRootFolder" {{#if createRootFolder}}checked{{/if}}>
+    </div>
+    <div class="form-group"
         title="If there already exists an entry with the same name in the folder, it will be overwritten.">
         <label>Overwrite existing journal entries? <i class="far fa-question-circle"></i></label>
         <input type="checkbox" name="overwrite" id="{{idPrefix}}overwrite" {{#if overwrite}}checked{{/if}}>
