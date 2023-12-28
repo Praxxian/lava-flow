@@ -83,7 +83,8 @@ export default class LavaFlow {
 
         if (settings.createBacklinks) await LavaFlow.createBacklinks(mdFiles);
       }
-
+      
+      await (game as Game).user?.unsetFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS);
       LavaFlow.log('Import complete.', true);
     } catch (e: any) {
       LavaFlow.errorHandling(e);
