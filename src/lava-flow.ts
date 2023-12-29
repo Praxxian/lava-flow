@@ -270,19 +270,21 @@ export default class LavaFlow {
   }
 
   static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
-    const linkPatterns = fileInfo.getLinkRegex();
-    for (let i = 0; i < allJournals.length; i++) {
+    const linkPatterns = fileInfo.getLinkRegex(); 
+    for (let i = 0; i < allJournals.length; i++) { 
       // v10 not supported by foundry-vtt-types yet
       // @ts-expect-error
       const comparePage = allJournals[i].pages.contents[0];
 
       for (let j = 0; j < linkPatterns.length; j++) {
-        const pattern = linkPatterns[j];
-        const linkMatches = (comparePage.text.markdown as string).matchAll(pattern);
+        const linkMatches = (comparePage.text.markdown as string).matchAll(linkPatterns[j]);
         if (linkMatches === null) continue;
         for (const linkMatch of linkMatches) {
-          const alias = (linkMatch[2] ?? '|').split('|')[1].trim();
-          let link = fileInfo.getLink(alias);
+          if ((linkMatch[1].startsWith('#')) && (fileInfo.journal.id != allJournals[i].id)) { // link is a current page header link and we're not matching that page
+              continue;
+              // since we'll match current page headers irrespective of what page we are looking at, skip it if it doesn't match the current page
+          }
+          let link = fileInfo.getLink(linkMatch.slice(1).join(''));
           if (link === null) continue;
           if (fileInfo instanceof OtherFileInfo) {
             const resizeMatches = linkMatch[0].match(/\|\d+(x\d+)?\]/gi);
