@@ -278,9 +278,9 @@ export default class LavaFlow {
 
       for (let j = 0; j < linkPatterns.length; j++) {
         const linkMatches = (comparePage.text.markdown as string).matchAll(linkPatterns[j]);
-        if (linkMatches === null) continue;
         for (const linkMatch of linkMatches) {
-          if ((linkMatch[1].startsWith('#')) && (fileInfo.journal?.id !== allJournals[i].id)) { // link is a current page header link and we're not matching that page
+          let header = linkMatch[1] ?? '|';
+          if ((header.startsWith('#')) && (fileInfo.journal?.id !== allJournals[i].id)) { // link is a current page header link and we're not matching that page
               continue;
               // since we'll match current page headers irrespective of what page we are looking at, skip it if it doesn't match the current page
           }
