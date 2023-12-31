@@ -52,7 +52,7 @@ export class MDFileInfo extends FileInfo {
   }
 
   getLinkRegex(): RegExp[] {
-    //return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    // return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
     return this.keys.map((k) => new RegExp(`!?\\[\\[(${k})?(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
     // matches all obsidian links, including current page header links.
   }
@@ -64,20 +64,26 @@ export class MDFileInfo extends FileInfo {
     switch (linkParts.length) {
       case 1: // having one part means a link to a page or a link to a header in the current page
         if (linkString.includes('#')) {
-          return `@UUID[.${this.journal?.pages[0].id ?? ''}]{${linkParts[0]}}`;
+          // no support for pages in foundry vtt types
+          // @ts-expect-error
+          return `@UUID[.${this.journal?.pages?.contents[0]?.id ?? ''}]{${linkParts[0]}}`;
         } else {
           return this.journal?.link ?? null;
         }
       case 2: // having two means a link to a header in a page or a link to a page with an alias
         if (linkString.includes('#')) {
-          return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages[0].id ?? ''}#${linkParts[1]}]{${linkParts[1]}}`;
+          // no support for pages in foundry vtt types
+          // @ts-expect-error
+          return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}#${linkParts[1]}]{${linkParts[1]}}`;
         } else if (linkString.includes('|')) {
           return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${linkParts[1]}}`;
         } else {
           return null;
         }
       case 3: // link to a header in a page with an alias
-        return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages[0].id ?? ''}#${linkParts[1]}]{${linkParts[2]}}`;
+        // no support for pages in foundry vtt types
+        // @ts-expect-error
+        return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}#${linkParts[1]}]{${linkParts[2]}}`;
       default:
         return null;
     }
