@@ -7,7 +7,7 @@ export abstract class FileInfo {
   fileNameNoExt: string;
 
   abstract getLinkRegex(): RegExp[];
-  abstract getLink(alias?: string | null): string | null;
+  abstract getLink(linkMatch?: RegExpMatchArray | null): string | null;
 
   constructor(file: File) {
     this.originalFile = file;
@@ -57,36 +57,33 @@ export class MDFileInfo extends FileInfo {
     // matches all obsidian links, including current page header links.
   }
 
-  getLink(linkString: string | null = null): string | null {
-    if (linkString === null || linkString.length < 1) return this.journal?.link ?? null;
-    const linkParts = linkString.split(/[#\|]+/);
+  getLink(linkMatch: RegExpMatchArray | null = null): string | null {
+    if (linkMatch === null) return null; // if we didn't find a match, but somehow we're here, we don't want to accidently override the link
+    let link = '@UUID[';
 
-    switch (linkParts.length) {
-      case 1: // having one part means a link to a page or a link to a header in the current page
-        if (linkString.includes('#')) {
-          // no support for pages in foundry vtt types
-          // @ts-expect-error
-          return `@UUID[.${this.journal?.pages?.contents[0]?.id ?? ''}]{${linkParts[0]}}`;
-        } else {
-          return this.journal?.link ?? null;
-        }
-      case 2: // having two means a link to a header in a page or a link to a page with an alias
-        if (linkString.includes('#')) {
-          // no support for pages in foundry vtt types
-          // @ts-expect-error
-          return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}#${linkParts[1]}]{${linkParts[1]}}`;
-        } else if (linkString.includes('|')) {
-          return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${linkParts[1]}}`;
-        } else {
-          return null;
-        }
-      case 3: // link to a header in a page with an alias
-        // no support for pages in foundry vtt types
-        // @ts-expect-error
-        return `@UUID[JournalEntry.${this.journal?.id ?? ''}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}#${linkParts[1]}]{${linkParts[2]}}`;
-      default:
-        return null;
+    if (linkMatch[1] !== undefined) { // we have a link to a page
+      link = link + `JournalEntry.${this.journal?.id ?? ''}`;
     }
+
+    if (linkMatch[2] !== undefined && linkMatch[1] == undefined) { // we have a link to a current page header
+      // no support for pages in foundry vtt types
+      // @ts-expect-error
+      link = link + `.${this.journal?.pages?.contents[0]?.id ?? ''}${linkMatch[2].toLowerCase().replace(' ', '-')}]`;
+    } else if (linkMatch[2] !== undefined) { // we have a header
+      // no support for pages in foundry vtt types
+      // @ts-expect-error
+      link = link + `.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}${linkMatch[2].toLowerCase().replace(' ', '-')}]`;
+    } else { // we don't have a header, but need to close the page link
+      link = link + `]`;
+    }
+
+    if (linkMatch[3] !=== undefined) { // we have an alias
+      link = link + `{${linkMatch[3].slice(1)}}`;
+    } else if (linkMatch[2] !=== undefined) { // we don't have an alias, but we have a header (use header as alias)
+      link = link + `{${linkMatch[2].slice(1)}}`;
+    } 
+
+    return link;
   }
 }
 
