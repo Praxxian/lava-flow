@@ -51,6 +51,24 @@ export class MDFileInfo extends FileInfo {
     this.createKeys(this.fileNameNoExt);
   }
 
+  getValidLinkHeader(header: string): string | null {
+    let validHeader = null;
+    // @ts-expect-error
+    const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\s(${header})$`, 'gmi'));
+
+    // ^(#+)\s(Scene)$
+    // ^<h(\d)>(${header})<\/h\d>$
+    for (let headerMatch of headerMatches) {
+      if (headerMatch[1].length > 2) {
+        continue; // foundry does not support header links for headers greater than h2
+      }
+      validHeader = headerMatch[2].toLowerCase().replace(' ', '-').replace('\'', '');
+      // foundry will remove some special characters for anchors to headers. I am only aware of apostrophe. Unsure what else there is.
+    }
+
+    return validHeader;
+  }
+
   getLinkRegex(): RegExp[] {
     // return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
     return this.keys.map((k) => new RegExp(`!?\\[\\[(${k})?(#[^\\|\\]]*)?(\\|[^\\]]*)?\\]\\]`, 'gi'));
@@ -60,33 +78,32 @@ export class MDFileInfo extends FileInfo {
 
   getLink(linkMatch: RegExpMatchArray | null = null): string | null {
     if (linkMatch === null) return null; // if we didn't find a match, but somehow we're here, we don't want to accidently override the link
+    if (linkMatch[1] == undefined && linkMatch[2] == undefined && linkMatch[3] == undefined) return null;
+    let page = linkMatch[1] ?? '';
+    let header = ((linkMatch[3] ?? '').startsWith('#')) ? linkMatch[3] : (linkMatch[2] ?? ''); // header sometimes appears in group 3, despite declared as group 2
+    let alias = ((linkMatch[3] == undefined) ? (linkMatch[2] ?? '') : linkMatch[3]);
+    let validHeader = (header === '') ? null : this.getValidLinkHeader(header);
+
     let link = '@UUID[';
     
-    if (linkMatch[1] !== undefined) { // we have a link to a page
-      link = `${link}JournalEntry.${this.journal?.id ?? ''}`;
+    link = (page === '') ? link : `${link}JournalEntry.${this.journal?.id ?? ''}`; // if we have a page reference, add it to the link.
+
+    if (page === '' && header !== '') { // current page header reference
+      // @ts-expect-error
+      link = (validHeader === null) ? `${header}` : `${link}.${this.journal?.pages?.contents[0]?.id ?? ''}${validHeader}]`;
+      // if the header can't be linked in Foundry, simply return the header as presented in the link
+    } else { // other page header reference
+      // @ts-expect-error
+      link = (validHeader === null) ? `${link}]` : `${link}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}${validHeader}]`;
+      // if the header can't be linked, but the link is to another page, skip the header link. We'll add it as text afterwards
     }
 
-    if (linkMatch[2] !== undefined && linkMatch[1] == undefined) { // we have a link to a current page header
-      console.log(`Lava Flow | Found current page header ${linkMatch[2]}`);
-      // @ts-expect-error
-      console.log(`Lava Flow | current page has page ${this.journal?.pages?.contents[0]?.id}`)
-      // no support for pages in foundry vtt types
-      // @ts-expect-error
-      link = `${link}.${this.journal?.pages?.contents[0]?.id ?? ''}${linkMatch[2].toLowerCase().replace(' ', '-')}]`;
-    } else if (linkMatch[2] !== undefined) { // we have a header
-      console.log(`Lava Flow | Found page header ${linkMatch[2]} for page ${linkMatch[1]}`);
-      // no support for pages in foundry vtt types
-      // @ts-expect-error
-      link = `${link}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}${linkMatch[2].toLowerCase().replace(' ', '-')}]`;
-    } else { // we don't have a header, but need to close the page link
-      link = `${link}]`;
-    }
+    link = (alias === '') ? link : `${link}{${alias.slice(1)}}`;
 
-    if (linkMatch[3] !== undefined) { // we have an alias
-      link = `${link}{${linkMatch[3].slice(1)}}`;
-    } else if (linkMatch[2] !== undefined) { // we don't have an alias, but we have a header (use header as alias)
-      link = `${link}{${linkMatch[2].slice(1)}}`;
-    } 
+    if (validHeader === null && page !== '' && header !== '') {
+      // if we have a header to another page, but it's not valid, append it outside of the core link
+      link = `${link} ${header}`;
+    }
 
     return link;
   }
