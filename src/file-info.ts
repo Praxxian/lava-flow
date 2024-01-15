@@ -7,7 +7,7 @@ export abstract class FileInfo {
   fileNameNoExt: string;
 
   abstract getLinkRegex(): RegExp[];
-  abstract getLink(alias?: string | null): string | null;
+  abstract getLink(linkMatch?: RegExpMatchArray | null): string | null;
 
   constructor(file: File) {
     this.originalFile = file;
@@ -51,13 +51,61 @@ export class MDFileInfo extends FileInfo {
     this.createKeys(this.fileNameNoExt);
   }
 
-  getLinkRegex(): RegExp[] {
-    return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+  getValidLinkHeader(header: string): string | null {
+    let validHeader = null;
+    // @ts-expect-error
+    const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\\s(${header.slice(1)})$`, 'gmi'));
+
+    // ^(#+)\s(Scene)$
+    // ^<h(\d)>(${header})<\/h\d>$
+    for (let headerMatch of headerMatches) {
+      if (headerMatch[1].length > 2) {
+        continue; // foundry does not support header links for headers greater than h2
+      }
+      validHeader = `#${headerMatch[2].toLowerCase().replaceAll(' ', '-').replaceAll('\'', '')}`;
+      // foundry will remove some special characters for anchors to headers. I am only aware of apostrophe. Unsure what else there is.
+    }
+
+    return validHeader;
   }
 
-  getLink(alias: string | null = null): string | null {
-    if (alias === null || alias.length < 1) return this.journal?.link ?? null;
-    else return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${alias}}`;
+  getLinkRegex(): RegExp[] {
+    // return this.keys.map((k) => new RegExp(`!?\\[\\[${k}(#[^\\]\\|]*)?(\\s*\\|[^\\]]*)?\\]\\]`, 'gi'));
+    return this.keys.map((k) => new RegExp(`!?\\[\\[(${k})?(#[^\\|\\]]*)?(\\|[^\\]]*)?\\]\\]`, 'gi'));
+    // !?\[\[(${k})?(#[^\|\]]*)?(\|[^\]]*)?\]\]
+    // matches all obsidian links, including current page header links.
+  }
+
+  getLink(linkMatch: RegExpMatchArray | null = null): string | null {
+    if (linkMatch === null) return null; // if we didn't find a match, but somehow we're here, we don't want to accidently override the link
+    if (linkMatch[1] == undefined && linkMatch[2] == undefined && linkMatch[3] == undefined) return null;
+    let page = linkMatch[1] ?? '';
+    let header = ((linkMatch[3] ?? '').startsWith('#')) ? linkMatch[3] : (linkMatch[2] ?? ''); // header sometimes appears in group 3, despite declared as group 2
+    let alias = ((linkMatch[3] == undefined) ? (linkMatch[2] ?? '') : linkMatch[3]);
+    let validHeader = (header === '') ? null : this.getValidLinkHeader(header);
+    
+    let link = '@UUID[';
+    
+    link = (page === '') ? link : `${link}JournalEntry.${this.journal?.id ?? ''}`; // if we have a page reference, add it to the link.
+
+    if (page === '' && header !== '') { // current page header reference
+      // @ts-expect-error
+      link = (validHeader === null) ? `${header}` : `${link}.${this.journal?.pages?.contents[0]?.id ?? ''}${validHeader}]`;
+      // if the header can't be linked in Foundry, simply return the header as presented in the link
+    } else { // other page header reference
+      // @ts-expect-error
+      link = (validHeader === null) ? `${link}]` : `${link}.JournalEntryPage.${this.journal?.pages?.contents[0]?.id ?? ''}${validHeader}]`;
+      // if the header can't be linked, but the link is to another page, skip the header link. We'll add it as text afterwards
+    }
+
+    link = (alias === '') ? link : `${link}{${alias.slice(1)}}`;
+
+    if (validHeader === null && page !== '' && header !== '') {
+      // if we have a header to another page, but it's not valid, append it outside of the core link
+      link = `${link} ${header}`;
+    }
+
+    return link;
   }
 }
 

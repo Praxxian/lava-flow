@@ -1,7 +1,7 @@
 {
   "name": "lava-flow",
   "title": "Lava Flow",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "A module for importing Obsidian MD vaults into Foundry VTT as journal entries.",
   "devDir": "C:\\Users\\cburk\\AppData\\Local\\FoundryVTT\\Data\\modules",
   "main": "src/index.ts",

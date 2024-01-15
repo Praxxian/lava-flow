@@ -266,7 +266,8 @@ export default class LavaFlow {
       },
       { parent: entry },
     );
-    return entry;
+    const newJournal = ((game as Game).journal?.get(entry.id ?? '')) ?? entry;
+    return newJournal; // ensuring the page content is returned as well as it's used for link generation
   }
 
   static async updateJournalFromFile(journal: JournalEntry, file: FileInfo): Promise<void> {
@@ -289,19 +290,26 @@ export default class LavaFlow {
   }
 
   static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
-    const linkPatterns = fileInfo.getLinkRegex();
-    for (let i = 0; i < allJournals.length; i++) {
+    const linkPatterns = fileInfo.getLinkRegex(); 
+    // scan all created journal entries (via allJournals) for matching references to markdown file fileInfo
+    for (let i = 0; i < allJournals.length; i++) { 
       // v10 not supported by foundry-vtt-types yet
       // @ts-expect-error
       const comparePage = allJournals[i].pages.contents[0];
 
       for (let j = 0; j < linkPatterns.length; j++) {
-        const pattern = linkPatterns[j];
-        const linkMatches = (comparePage.text.markdown as string).matchAll(pattern);
-        if (linkMatches === null) continue;
+        const linkMatches = (comparePage.text.markdown as string).matchAll(linkPatterns[j]);
+        // linkMatches (full link, page, header, alias)
+        
         for (const linkMatch of linkMatches) {
-          const alias = (linkMatch[2] ?? '|').split('|')[1].trim();
-          let link = fileInfo.getLink(alias);
+          if (linkMatch[2] !== undefined && linkMatch[1] == undefined && fileInfo.journal?.id != allJournals[i].id) { // current page header
+            // link is a current page header link and we're not matching that page
+            continue;
+            // since we'll match current page headers irrespective of what page we are looking at, skip it if it doesn't match the current page
+          }
+          
+          let link = fileInfo.getLink(linkMatch);
+          
           if (link === null) continue;
           if (fileInfo instanceof OtherFileInfo) {
             const resizeMatches = linkMatch[0].match(/\|\d+(x\d+)?\]/gi);
