@@ -83,7 +83,9 @@ export default class LavaFlow {
 
         if (settings.createBacklinks) await LavaFlow.createBacklinks(mdFiles);
       }
-
+      
+      settings.vaultFiles = null;
+      LavaFlow.saveSettings(settings);
       LavaFlow.log('Import complete.', true);
     } catch (e: any) {
       LavaFlow.errorHandling(e);
