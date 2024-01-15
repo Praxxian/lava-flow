@@ -230,18 +230,12 @@ export default class LavaFlow {
 				const linkMatches = comparePage.text.markdown.matchAll(linkPatterns[j]);
 				// linkMatches (full link, page, header, alias)
 				for (const linkMatch of linkMatches) {
-					//LavaFlow.log(`Processing link for ${allJournals[i].name}: ${linkMatch[0]}, Page: ${linkMatch[1]}, Header: ${linkMatch[2]}, Alias: ${linkMatch[3]}`, false);
 					if (linkMatch[2] !== undefined && linkMatch[1] == undefined && fileInfo.journal?.id != allJournals[i].id) { // current page header
 						// link is a current page header link and we're not matching that page
 						continue;
 						// since we'll match current page headers irrespective of what page we are looking at, skip it if it doesn't match the current page
 					}
-					else if (linkMatch[2] !== undefined && linkMatch[1] == undefined && fileInfo.journal?.id == allJournals[i].id) {
-						LavaFlow.log(`Found current page link ${linkMatch[0]} in ${allJournals[i].name} for ${fileInfo.fileNameNoExt}`);
-					}
-					//LavaFlow.log(`Processing link ${linkMatch[0]} for file ${fileInfo.fileNameNoExt} to journal ${allJournals[i].name}(${allJournals[i].id})`, false);
 					let link = fileInfo.getLink(linkMatch);
-					LavaFlow.log(`Processing link for ${allJournals[i].name}. Link Match: ${linkMatch[0]}. Link: ${link}`, false);
 					if (link === null)
 						continue;
 					if (fileInfo instanceof OtherFileInfo) {

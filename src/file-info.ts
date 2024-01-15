@@ -54,7 +54,7 @@ export class MDFileInfo extends FileInfo {
   getValidLinkHeader(header: string): string | null {
     let validHeader = null;
     // @ts-expect-error
-    const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\s(${header})$`, 'gmi'));
+    const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\\s(${header.slice(1)})$`, 'gmi'));
 
     // ^(#+)\s(Scene)$
     // ^<h(\d)>(${header})<\/h\d>$
@@ -62,7 +62,7 @@ export class MDFileInfo extends FileInfo {
       if (headerMatch[1].length > 2) {
         continue; // foundry does not support header links for headers greater than h2
       }
-      validHeader = headerMatch[2].toLowerCase().replace(' ', '-').replace('\'', '');
+      validHeader = `#${headerMatch[2].toLowerCase().replaceAll(' ', '-').replaceAll('\'', '')}`;
       // foundry will remove some special characters for anchors to headers. I am only aware of apostrophe. Unsure what else there is.
     }
 
@@ -83,7 +83,7 @@ export class MDFileInfo extends FileInfo {
     let header = ((linkMatch[3] ?? '').startsWith('#')) ? linkMatch[3] : (linkMatch[2] ?? ''); // header sometimes appears in group 3, despite declared as group 2
     let alias = ((linkMatch[3] == undefined) ? (linkMatch[2] ?? '') : linkMatch[3]);
     let validHeader = (header === '') ? null : this.getValidLinkHeader(header);
-
+    
     let link = '@UUID[';
     
     link = (page === '') ? link : `${link}JournalEntry.${this.journal?.id ?? ''}`; // if we have a page reference, add it to the link.

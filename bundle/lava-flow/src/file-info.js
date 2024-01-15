@@ -41,14 +41,14 @@ export class MDFileInfo extends FileInfo {
 	getValidLinkHeader(header) {
 		let validHeader = null;
 		// @ts-expect-error
-		const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\s(${header})$`, 'gmi'));
+		const headerMatches = this.journal?.pages?.contents[0]?.text.markdown.matchAll(new RegExp(`^(#+)\\s(${header.slice(1)})$`, 'gmi'));
 		// ^(#+)\s(Scene)$
 		// ^<h(\d)>(${header})<\/h\d>$
 		for (let headerMatch of headerMatches) {
 			if (headerMatch[1].length > 2) {
 				continue; // foundry does not support header links for headers greater than h2
 			}
-			validHeader = headerMatch[2].toLowerCase().replace(' ', '-').replace('\'', '');
+			validHeader = `#${headerMatch[2].toLowerCase().replaceAll(' ', '-').replaceAll('\'', '')}`;
 			// foundry will remove some special characters for anchors to headers. I am only aware of apostrophe. Unsure what else there is.
 		}
 		return validHeader;
@@ -83,7 +83,7 @@ export class MDFileInfo extends FileInfo {
 		link = (alias === '') ? link : `${link}{${alias.slice(1)}}`;
 		if (validHeader === null && page !== '' && header !== '') {
 			// if we have a header to another page, but it's not valid, append it outside of the core link
-			link = `${link} #${header}`;
+			link = `${link} ${header}`;
 		}
 		return link;
 	}
