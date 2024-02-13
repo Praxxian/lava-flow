@@ -93,7 +93,6 @@ export default class LavaFlow {
   static async saveSettings(settings: LavaFlowSettings): Promise<void> {
     const savedSettings = new LavaFlowSettings();
     Object.assign(savedSettings, settings);
-    console.log(savedSettings);
     // await (game as Game).user?.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS, savedSettings);
   }
 
