@@ -93,7 +93,8 @@ export default class LavaFlow {
   static async saveSettings(settings: LavaFlowSettings): Promise<void> {
     const savedSettings = new LavaFlowSettings();
     Object.assign(savedSettings, settings);
-    await (game as Game).user?.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS, savedSettings);
+    console.log(savedSettings);
+    // await (game as Game).user?.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS, savedSettings);
   }
 
   static async importFile(file: FileInfo, settings: LavaFlowSettings, rootFolder: Folder | null): Promise<void> {
