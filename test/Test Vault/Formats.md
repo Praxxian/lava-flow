@@ -9,10 +9,12 @@ Most of these were grabbed from the Obsidian Sandbox vault.
 ## Note
 >[!NOTE]
 > This is a note callout.
+
 ## Info
 > [!INFO]
 > Here's an info callout block.
-> It supports **markdown** and [[Internal link|wikilinks]].
+> It supports **markdown** and [[Embeds | links]].
+
 ## Foldable
 > [!FAQ]- Are callouts foldable?
 > Yes! In a foldable callout, the contents are hidden until it is expanded.
@@ -168,3 +170,5 @@ First Header | Second Header
 - [?] this is also a complete item (works with every character)
 - [ ] this is an incomplete item
 - [ ] tasks can be clicked in Preview to be checked off
+# Tags
+#thisIsNotAHeader
