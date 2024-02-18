@@ -148,15 +148,16 @@ export default class LavaFlow {
   static async validateUploadLocation(settings: LavaFlowSettings): Promise<void> {
     if (settings.useS3) {
       if (settings.s3Bucket === null || settings.s3Region === null) throw new Error('S3 settings are invalid.');
-    }
-    try {
-      let pickerPromise = await FilePicker.browse('data', settings.mediaFolder);
-      return;
-    } catch (error: any) {
-      LavaFlow.log(`Error accessing filepath ${settings.mediaFolder}: ${error.message}`, false);
-    }
+    } else {
+      try {
+        await FilePicker.browse('data', settings.mediaFolder);
+        return;
+      } catch (error: any) {
+        LavaFlow.log(`Error accessing filepath ${settings.mediaFolder}: ${error.message}`, false);
+      }
 
-    await FilePicker.createDirectory('data', settings.mediaFolder);
+      await FilePicker.createDirectory('data', settings.mediaFolder);
+    }
   }
 
   static async createIndexFile(
