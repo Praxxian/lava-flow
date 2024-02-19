@@ -15,7 +15,7 @@ This module allows you to import your notes from Obsidian MD into Foundry journa
 
 ## Compatibility Matrix
 
-I highly recommend using Foundry v10, as the latest version of this module will have the best functionality and latest bug fixes.
+I highly recommend using the latest version of Foundry supported by the module, as the latest version of this module will have the best functionality and latest bug fixes.
 | Lava Flow Version | Foundry Version |
 | -- | -- |
 | v1.\* | v9 |
@@ -43,8 +43,8 @@ I highly recommend using Foundry v10, as the latest version of this module will 
 
 - Folder depth is limited to Foundry's folder depth limit.
 - Obsidian Canvas files are not supported. These will be ignored.
-- Issues with selecting a folder and having no files import. This is usually an issue with webkitdirectory.
-  - Some browsers (e.g. OperaGX)
+- Issues with selecting a folder and having no files import. This is usually an issue with webkitdirectory. Workaround/solution is typically to use a different browser (e.g. Firefox, Chrome, Edge).
+  - Caused by some browsers (e.g. OperaGX)
   - Foundry App
     - Caused by older versions of Electron, which the Foundry app uses.
     - This impacts all v9 installs.
