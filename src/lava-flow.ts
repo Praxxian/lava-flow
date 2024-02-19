@@ -135,14 +135,8 @@ export default class LavaFlow {
   static async importOtherFile(file: OtherFileInfo, settings: LavaFlowSettings): Promise<void> {
     const source = settings.useS3 ? 's3' : 'data';
     const body = settings.useS3 ? { bucket: settings.s3Bucket } : {};
-    const promise = FilePicker.upload(source, settings.mediaFolder, file.originalFile, body);
-    let path = `${settings.mediaFolder}/${file.originalFile.name}`;
-    path.replace('//', '/');
-    if (settings.useS3) {
-      path = `https://${settings.s3Bucket}.s3.${settings.s3Region}.amazonaws.com/${path}`;
-    }
-    file.uploadPath = path;
-    await promise;
+    const uploadResponse: any = await FilePicker.upload(source, settings.mediaFolder, file.originalFile, body);
+    if (uploadResponse?.path) file.uploadPath = decodeURI(uploadResponse.path);
   }
 
   static async validateUploadLocation(settings: LavaFlowSettings): Promise<void> {
