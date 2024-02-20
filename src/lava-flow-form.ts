@@ -10,7 +10,7 @@ export class LavaFlowForm extends FormApplication {
     const defaults = super.defaultOptions;
 
     const overrides: LavaFlowFormOptions = {
-      height: 500,
+      height: 600,
       id: `${LavaFlow.ID}-form`,
       template: LavaFlow.TEMPLATES.IMPORTDIAG,
       title: 'Import Obsidian MD Vault',
@@ -59,6 +59,7 @@ export class LavaFlowForm extends FormApplication {
     this.setInverseToggle(`#${prefix}overwrite`, `#${prefix}ignoreDuplicateDiv`);
     this.setToggle(`#${prefix}importNonMarkdown`, `#${prefix}nonMarkdownOptions`);
     this.setToggle(`#${prefix}useS3`, `#${prefix}s3Options`);
+    this.setToggle(`#${prefix}combineNotes`, `#${prefix}combineNotesOptions`);
 
     const vaultFilesID = `#${prefix}vaultFiles`;
     $(vaultFilesID).on('change', (event: any) => {

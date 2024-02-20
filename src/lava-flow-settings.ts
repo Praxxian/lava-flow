@@ -15,4 +15,6 @@ export class LavaFlowSettings {
   s3Bucket: string | null = null;
   s3Region: string | null = null;
   mediaFolder: string = 'img';
+  combineNotes = false;
+  combineNotesNoSubfolders = true;
 }

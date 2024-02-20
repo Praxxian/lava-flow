@@ -41,6 +41,23 @@
             createBacklinks}}checked{{/if}}>
     </div>
 
+    <div class="form-group"
+        title="Combine notes within a folder into a single Journal Entry with multiple pages.">
+        <label>Combine notes into pages? <i class="far fa-question-circle"></i></label>
+        <input type="checkbox" name="combineNotes" id="{{idPrefix}}combineNotes" {{#if
+            combineNotes}}checked{{/if}}>
+    </div>
+
+    <div id="{{idPrefix}}combineNotesOptions" {{#if combineNotes}}{{else}}style="display: none;" {{/if}}>
+        <div class="form-group"
+            title="Only combine notes into a single entry if the folder has no subfolders.">
+            <label>Do not combine folders with subfolders? <i class="far fa-question-circle"></i></label>
+            <input type="checkbox" name="combineNotesNoSubfolders" id="{{idPrefix}}combineNotesNoSubfolders" {{#if
+                combineNotesNoSubfolders}}checked{{/if}}>
+        </div>
+    </div>
+    
+
     <h1>Non-Markdown Options</h1>
     <div class="form-group" title="Non-markdown files, like images, will be loaded to the game server or S3.">
         <label>Import non-markdown files? <i class="far fa-question-circle"></i></label>
