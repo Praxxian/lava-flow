@@ -65,25 +65,27 @@ export default class LavaFlow {
     try {
       await this.saveSettings(settings);
 
+      if (settings.vaultFiles == null) return;
+
       if (settings.importNonMarkdown) {
         await LavaFlow.validateUploadLocation(settings);
       }
 
       const rootFolder = await createOrGetFolder(settings.rootFolderName);
-      const files: FileInfo[] = [];
-      if (settings.vaultFiles == null) return;
-      for (let i = 0; i < settings.vaultFiles.length; i++) {
-        const file = FileInfo.get(settings.vaultFiles[i]);
-        if (file.isHidden() || file.isCanvas()) continue;
-        await LavaFlow.importFile(file, settings, rootFolder);
-        files.push(file);
+
+      const importedFiles: FileInfo[] = [];
+      const folderFiles = LavaFlow.groupByFolder(settings.vaultFiles);
+      for (const folder in folderFiles) {
+        const files = folderFiles[folder];
+        await LavaFlow.importFolder(files, settings, rootFolder);
+        files.forEach((f) => importedFiles.push(f));
       }
 
-      const allJournals = files.filter((f) => f.journal !== null).map((f) => f.journal) as JournalEntry[];
-      for (let i = 0; i < files.length; i++) await LavaFlow.updateLinks(files[i], allJournals);
+      const allJournals = importedFiles.filter((f) => f.journal !== null).map((f) => f.journal) as JournalEntry[];
+      for (let i = 0; i < importedFiles.length; i++) await LavaFlow.updateLinks(importedFiles[i], allJournals);
 
       if (settings.createIndexFile || settings.createBacklinks) {
-        const mdFiles = files.filter((f) => f instanceof MDFileInfo) as MDFileInfo[];
+        const mdFiles = importedFiles.filter((f) => f instanceof MDFileInfo) as MDFileInfo[];
         if (settings.createIndexFile) await LavaFlow.createIndexFile(settings, mdFiles, rootFolder);
 
         if (settings.createBacklinks) await LavaFlow.createBacklinks(mdFiles);
@@ -95,6 +97,20 @@ export default class LavaFlow {
     }
   }
 
+  static groupByFolder(fileList: FileList): { [key: string]: FileInfo[] } {
+    const folderGroups: { [key: string]: FileInfo[] } = {};
+    for (let i = 0; i < fileList.length; i++) {
+      const file = FileInfo.get(fileList[i]);
+      if (file.isHidden() || file.isCanvas()) continue;
+      const folder = file.directories.join('/');
+      let fileArr: FileInfo[] = [];
+      if (folder in folderGroups) fileArr = folderGroups[folder];
+      fileArr.push(file);
+      folderGroups[folder] = fileArr;
+    }
+    return folderGroups;
+  }
+
   static async saveSettings(settings: LavaFlowSettings): Promise<void> {
     const savedSettings = new LavaFlowSettings();
     Object.assign(savedSettings, settings);
@@ -102,9 +118,35 @@ export default class LavaFlow {
     await (game as Game).user?.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.LASTSETTINGS, savedSettings);
   }
 
-  static async importFile(file: FileInfo, settings: LavaFlowSettings, rootFolder: Folder | null): Promise<void> {
+  static async importFolder(files: FileInfo[], settings: LavaFlowSettings, rootFolder: Folder | null): Promise<void> {
+    let parentFolder = rootFolder;
+
+    // Only create folders if there's markdown
+    if (files.filter((f) => f instanceof MDFileInfo).length > 0) {
+      for (let i = 0; i < files[0].directories.length; i++) {
+        const newFolder = await createOrGetFolder(files[0].directories[i], parentFolder?.id);
+        parentFolder = newFolder;
+      }
+    }
+
+    const multiplePages = settings.combineNotes; // TODO check for subfolder condition
+    let parentJournal: JournalEntry | null = null;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.isHidden() || file.isCanvas()) continue;
+      await this.importFile(files[i], settings, parentFolder, parentJournal);
+      if (multiplePages && parentJournal == null && file instanceof MDFileInfo) parentJournal = file.journal;
+    }
+  }
+
+  static async importFile(
+    file: FileInfo,
+    settings: LavaFlowSettings,
+    rootFolder: Folder | null,
+    parentJournal: JournalEntry | null,
+  ): Promise<void> {
     if (file instanceof MDFileInfo) {
-      await this.importMarkdownFile(file, settings, rootFolder);
+      await this.importMarkdownFile(file, settings, rootFolder, parentJournal);
     } else if (settings.importNonMarkdown && file instanceof OtherFileInfo) {
       await this.importOtherFile(file, settings);
     }
@@ -113,13 +155,9 @@ export default class LavaFlow {
   static async importMarkdownFile(
     file: MDFileInfo,
     settings: LavaFlowSettings,
-    rootFolder: Folder | null,
+    parentFolder: Folder | null,
+    parentJournal: JournalEntry | null,
   ): Promise<void> {
-    let parentFolder = rootFolder;
-    for (let i = 0; i < file.directories.length; i++) {
-      const newFolder = await createOrGetFolder(file.directories[i], parentFolder?.id);
-      parentFolder = newFolder;
-    }
     const journalName = file.fileNameNoExt;
     let journal =
       ((game as Game).journal?.find((j) => j.name === journalName && j.folder === parentFolder) as JournalEntry) ??
