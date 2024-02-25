@@ -81,7 +81,10 @@ export default class LavaFlow {
         files.forEach((f) => importedFiles.push(f));
       }
 
-      const allJournals = importedFiles.filter((f) => f.journal !== null).map((f) => f.journal) as JournalEntry[];
+      const allJournals = importedFiles
+        .filter((f) => f.journalPage !== null)
+        // @ts-expect-error
+        .map((f) => f.journalPage) as JournalEntryPage[];
       for (let i = 0; i < importedFiles.length; i++) await LavaFlow.updateLinks(importedFiles[i], allJournals);
 
       if (settings.createIndexFile || settings.createBacklinks) {
@@ -119,23 +122,35 @@ export default class LavaFlow {
   }
 
   static async importFolder(files: FileInfo[], settings: LavaFlowSettings, rootFolder: Folder | null): Promise<void> {
+    const hasMDFiles = files.filter((f) => f instanceof MDFileInfo).length > 0;
+    const combineFiles = settings.combineNotes && hasMDFiles;
+
     let parentFolder = rootFolder;
+    const directories = files[0].directories;
+
+    if (combineFiles) directories.shift();
 
     // Only create folders if there's markdown
-    if (files.filter((f) => f instanceof MDFileInfo).length > 0) {
-      for (let i = 0; i < files[0].directories.length; i++) {
-        const newFolder = await createOrGetFolder(files[0].directories[i], parentFolder?.id);
+    let directoryDepth = directories.length;
+    if (combineFiles) directoryDepth--;
+    if (hasMDFiles) {
+      for (let i = 0; i < directoryDepth; i++) {
+        const newFolder = await createOrGetFolder(directories[i], parentFolder?.id);
         parentFolder = newFolder;
       }
     }
 
-    const multiplePages = settings.combineNotes; // TODO check for subfolder condition
     let parentJournal: JournalEntry | null = null;
+
+    if (combineFiles && directories.length > 0) {
+      const journalName = directories[directories.length - 1];
+      parentJournal = await LavaFlow.createJournal(journalName, parentFolder, settings.playerObserve);
+    }
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.isHidden() || file.isCanvas()) continue;
       await this.importFile(files[i], settings, parentFolder, parentJournal);
-      if (multiplePages && parentJournal == null && file instanceof MDFileInfo) parentJournal = file.journal;
     }
   }
 
@@ -158,16 +173,25 @@ export default class LavaFlow {
     parentFolder: Folder | null,
     parentJournal: JournalEntry | null,
   ): Promise<void> {
-    const journalName = file.fileNameNoExt;
-    let journal =
-      ((game as Game).journal?.find((j) => j.name === journalName && j.folder === parentFolder) as JournalEntry) ??
-      null;
+    const pageName = file.fileNameNoExt;
+    const journalName = parentJournal?.name ?? pageName;
+    const journal: JournalEntry =
+      parentJournal ??
+      ((game as Game).journal?.find(
+        (j: JournalEntry) => j.name === journalName && j.folder === parentFolder,
+      ) as JournalEntry) ??
+      (await LavaFlow.createJournal(journalName, parentFolder, settings.playerObserve));
 
-    if (journal !== null && settings.overwrite) await LavaFlow.updateJournalFromFile(journal, file);
-    else if (journal === null || (!settings.overwrite && !settings.ignoreDuplicate))
-      journal = await LavaFlow.createJournalFromFile(journalName, parentFolder, file, settings.playerObserve);
+    const fileContent = await LavaFlow.getFileContent(file);
 
-    file.journal = journal;
+    // @ts-expect-error
+    let journalPage: JournalEntryPage = journal.pages.find((p: JournalEntryPage) => p.name === pageName) ?? null;
+
+    if (journalPage !== null && settings.overwrite) await LavaFlow.updateJournalPage(journalPage, fileContent);
+    else if (journalPage === null || (!settings.overwrite && !settings.ignoreDuplicate))
+      journalPage = await LavaFlow.createJournalPage(pageName, fileContent, journal);
+
+    file.journalPage = journalPage;
   }
 
   static async importOtherFile(file: OtherFileInfo, settings: LavaFlowSettings): Promise<void> {
@@ -207,12 +231,13 @@ export default class LavaFlow {
       content += `<h1>${directories[j]}</h1>`;
       const journals = mdDictionary
         .filter((d) => LavaFlow.getIndexTopDirectory(d) === directories[j])
-        .map((d) => d.journal);
+        .map((d) => d.journalPage);
       content += `<ul>${journals.map((journal) => `<li>${journal?.link ?? ''}</li>`).join('\n')}</ul>`;
     }
-    if (indexJournal != null) await LavaFlow.updateJournal(indexJournal, content);
+    if (indexJournal != null) await LavaFlow.updateJournalPage(indexJournal, content);
     else {
-      await LavaFlow.createJournal(indexJournalName, rootFolder, content, settings.playerObserve);
+      const journal = await LavaFlow.createJournal(indexJournalName, rootFolder, settings.playerObserve);
+      await LavaFlow.createJournalPage(indexJournalName, content, journal);
     }
   }
 
@@ -223,14 +248,12 @@ export default class LavaFlow {
   static async createBacklinks(files: MDFileInfo[]): Promise<void> {
     for (let i = 0; i < files.length; i++) {
       const fileInfo = files[i];
-      if (fileInfo.journal === null) continue;
+      if (fileInfo.journalPage === null) continue;
       const backlinkFiles: MDFileInfo[] = [];
       for (let j = 0; j < files.length; j++) {
         if (j === i) continue;
         const otherFileInfo = files[j];
-        // v10 not supported by foundry-vtt-types yet
-        // @ts-expect-error
-        const page = otherFileInfo.journal?.pages?.contents[0];
+        const page = otherFileInfo.journalPage?.pages?.contents[0];
         const link = fileInfo.getLink();
         if (page !== undefined && page !== null && link !== null && (page.text.markdown as string).includes(link))
           backlinkFiles.push(otherFileInfo);
@@ -238,9 +261,7 @@ export default class LavaFlow {
       if (backlinkFiles.length > 0) {
         backlinkFiles.sort((a, b) => a.fileNameNoExt.localeCompare(b.fileNameNoExt));
         const backLinkList = backlinkFiles.map((b) => `- ${b.getLink() ?? ''}`).join('\r\n');
-        // v10 not supported by foundry-vtt-types yet
-        // @ts-expect-error
-        const page = fileInfo.journal.pages.contents[0];
+        const page = fileInfo.journalPage.pages.contents[0];
         // TODO when v10 types are ready, this cast will be unecessary
         const newText = `${page.text.markdown as string}\r\n#References\r\n${backLinkList}`;
         page.update({ text: { markdown: newText } });
@@ -264,20 +285,9 @@ export default class LavaFlow {
     return txt.value;
   }
 
-  static async createJournalFromFile(
-    journalName: string,
-    parentFolder: Folder | null,
-    file: FileInfo,
-    playerObserve: boolean,
-  ): Promise<JournalEntry> {
-    const fileContent = await LavaFlow.getFileContent(file);
-    return await LavaFlow.createJournal(journalName, parentFolder, fileContent, playerObserve);
-  }
-
   static async createJournal(
     journalName: string,
     parentFolder: Folder | null,
-    content: string,
     playerObserve: boolean,
   ): Promise<JournalEntry> {
     const entryData: JournalEntryDataConstructorData = {
@@ -289,28 +299,27 @@ export default class LavaFlow {
 
     const entry = (await JournalEntry.create(entryData)) ?? new JournalEntry();
     await entry.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.JOURNAL, true);
-
-    // v10 not supported by foundry-vtt-types yet
-    // @ts-expect-error
-    await JournalEntryPage.create(
-      {
-        name: journalName,
-        text: { markdown: content, format: 2 }, // CONST.JOURNAL_ENTRY_PAGE_FORMATS.MARKDOWN in v10
-      },
-      { parent: entry },
-    );
     return entry;
   }
 
-  static async updateJournalFromFile(journal: JournalEntry, file: FileInfo): Promise<void> {
-    await LavaFlow.updateJournal(journal, await LavaFlow.getFileContent(file));
+  private static async createJournalPage(
+    pageName: string,
+    content: string,
+    journalEntry: JournalEntry,
+  ): Promise<JournalEntry> {
+    // @ts-expect-error
+    return JournalEntryPage.create(
+      {
+        name: pageName,
+        text: { markdown: content, format: 2 }, // CONST.JOURNAL_ENTRY_PAGE_FORMATS.MARKDOWN in v10+
+      },
+      { parent: journalEntry },
+    );
   }
 
-  static async updateJournal(journal: JournalEntry, content: string): Promise<void> {
-    if (journal === undefined || journal === null) return;
-    // v10 not supported by foundry-vtt-types yet
-    // @ts-expect-error
-    const page = journal.pages.contents[0];
+  // @ts-expect-error
+  static async updateJournalPage(page: JournalEntryPage, content: string): Promise<void> {
+    if (page === undefined || page === null) return;
     await page.update({ text: { markdown: content } });
   }
 
@@ -322,12 +331,11 @@ export default class LavaFlow {
     return originalText;
   }
 
-  static async updateLinks(fileInfo: FileInfo, allJournals: JournalEntry[]): Promise<void> {
+  // @ts-expect-error
+  static async updateLinks(fileInfo: FileInfo, allPages: JournalEntryPage[]): Promise<void> {
     const linkPatterns = fileInfo.getLinkRegex();
-    for (let i = 0; i < allJournals.length; i++) {
-      // v10 not supported by foundry-vtt-types yet
-      // @ts-expect-error
-      const comparePage = allJournals[i].pages.contents[0];
+    for (let i = 0; i < allPages.length; i++) {
+      const comparePage = allPages[i];
 
       for (let j = 0; j < linkPatterns.length; j++) {
         const pattern = linkPatterns[j];
@@ -350,7 +358,7 @@ export default class LavaFlow {
             }
           }
           const newContent = comparePage.text.markdown.replace(linkMatch[0], link);
-          await LavaFlow.updateJournal(allJournals[i], newContent);
+          await LavaFlow.updateJournalPage(allPages[i], newContent);
         }
       }
     }

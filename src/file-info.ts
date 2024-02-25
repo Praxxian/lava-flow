@@ -2,7 +2,8 @@ export abstract class FileInfo {
   originalFile: File;
   keys: string[] = [];
   directories: string[] = [];
-  journal: JournalEntry | null = null;
+  // @ts-expect-error
+  journalPage: JournalEntryPage | null = null;
   extension: string | null = null;
   fileNameNoExt: string;
 
@@ -56,8 +57,11 @@ export class MDFileInfo extends FileInfo {
   }
 
   getLink(alias: string | null = null): string | null {
-    if (alias === null || alias.length < 1) return this.journal?.link ?? null;
-    else return `@UUID[JournalEntry.${this.journal?.id ?? ''}]{${alias}}`;
+    if (alias === null || alias.length < 1) return this.journalPage?.link ?? null;
+    else
+      return `@UUID[JournalEntry.${this.journalPage?.parent?.id}.JournalEntryPage.${
+        this.journalPage?.id ?? ''
+      }]{${alias}}`;
   }
 }
 
