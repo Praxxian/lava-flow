@@ -1,0 +1,1 @@
+Oranges are orange colored.

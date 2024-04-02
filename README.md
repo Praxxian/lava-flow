@@ -27,7 +27,7 @@ I highly recommend using the latest version of Foundry supported by the module, 
 1. Under the Journal tab, there is an "Import Obsidian Vault" button.\
    ![image](https://user-images.githubusercontent.com/54974037/146979663-d754caeb-df13-454c-8b2a-00ecce5ff8a4.png)
 1. Click this to open the import menu.\
-   ![image](https://user-images.githubusercontent.com/54974037/153740928-d2f8f780-1496-4bd9-808a-97d94b982eb3.png)
+   ![image](https://github.com/Praxxian/lava-flow/assets/54974037/806dded3-8239-4743-a47d-1f7590a2bc5a)
 1. Name the top journal folder you wish to place your notes in. If this folder does not already exist, it will be created. Leaving this blank will place your notes directly into your journal entries.
 1. Select the folder you wish to import. This can be any folder within your vault, including the root, or any folder with markdown files.
 1. Select if you wish to overwrite journal entries that already exist with the same name in the same folder.
@@ -37,6 +37,8 @@ I highly recommend using the latest version of Foundry supported by the module, 
    ![image](https://user-images.githubusercontent.com/54974037/146980929-400ce499-c352-47a1-890a-5f3ae574b8d3.png)
 1. Select if you wish to create backlinks in each imported journal entry. This creates a "Reference" section to the end of each journal entry, linking to all the journal entries that reference it.\
    ![image](https://user-images.githubusercontent.com/54974037/146981259-6755cb58-a4d6-4df6-9473-8ad8c5914182.png)
+1. Select if you would like to combine individual files into a single journal entry with multiple pages for each folder. Using this, the Journal Entry will have the folder name, and the pages will be named after the files.
+   - You can choose to do this _only_ when no subfolders are present. This is the default and recommended setting. Allowing this for all folders creates some unintuitive results like having a Journal Entry and folder named the same thing.
 1. If you want to import images, select "Import non-markdown files". By default, this uses local storage, you can also select S3 storage.
 
 ## Known Issues
