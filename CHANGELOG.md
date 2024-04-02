@@ -1,5 +1,16 @@
 # Lava Flow
 
+
+
+## Release 3.1.0 (2024-04-01)
+- Notes can be turned into pages within a single Journal Entry.
+- Fixed a bug that caused performance issues for large vaults.
+- Tags at the start of a line should no longer be displayed as headers in Foundry.
+- File paths for non-journal files will be created if they do not yet exist.
+
+## Release 3.0.0 (2023-06-04)
+- Foundry v11 compatibility
+
 ## Release 2.2.0 (2023-02-25)
 
 - Fixed an issue where the Import button did not let journal buttons from other modules/systems render.
