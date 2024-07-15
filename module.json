@@ -10,7 +10,7 @@
   ],
   "compatibility": {
     "minimum": "11",
-    "verified": "11"
+    "verified": "12"
   },
   "esmodules": "{{sources}}",
   "styles": "{{css}}",
