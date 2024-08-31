@@ -15,10 +15,10 @@
   "esmodules": "{{sources}}",
   "styles": "{{css}}",
   "languages": [{ "lang": "en", "name": "English", "path": "lang/en.json" }],
-  "url": "https://github.com/Praxxian/lava-flow",
-  "license": "https://github.com/Praxxian/lava-flow/LICENSE",
-  "manifest": "https://github.com/Praxxian/lava-flow/releases/download/{{version}}/module.json",
-  "download": "https://github.com/Praxxian/lava-flow/releases/download/{{version}}/lava-flow.zip",
-  "readme": "https://github.com/Praxxian/lava-flow/README.md",
-  "changelog": "https://github.com/Praxxian/lava-flow/CHANGELOG.md"
+  "url": "https://github.com/matt-duffy/lava-flow",
+  "license": "https://github.com/matt-duffy/lava-flow/LICENSE",
+  "manifest": "https://github.com/matt-duffy/lava-flow/releases/download/{{version}}/module.json",
+  "download": "https://github.com/matt-duffy/lava-flow/releases/download/{{version}}/lava-flow.zip",
+  "readme": "https://github.com/matt-duffy/lava-flow/lava-flow/README.md",
+  "changelog": "https://github.com/matt-duffy/lava-flow/lava-flow/CHANGELOG.md"
 }
