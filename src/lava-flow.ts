@@ -303,8 +303,11 @@ export default class LavaFlow {
       name: journalName,
       folder: parentFolder?.id,
     };
-    if (playerObserve && entryData.permission !== undefined && entryData.permission !== null)
-      entryData.permission.default = CONST.DOCUMENT_PERMISSION_LEVELS.OBSERVER;
+  
+    if (playerObserve && entryData.permission !== undefined && entryData.permission !== null){
+      // @ts-expect-error
+      entryData.permission.default = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+    }      
 
     const entry = (await JournalEntry.create(entryData)) ?? new JournalEntry();
     await entry.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.JOURNAL, true);

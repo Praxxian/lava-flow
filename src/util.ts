@@ -27,7 +27,7 @@ export async function createFolder(folderName: string, parentFolderID: string | 
   const folder = await Folder.create({
     name: folderName,
     type: 'JournalEntry',
-    parent: parentFolderID,
+    folder: parentFolderID,
   });
   await folder?.setFlag(LavaFlow.FLAGS.SCOPE, LavaFlow.FLAGS.FOLDER, true);
   return folder ?? null;
