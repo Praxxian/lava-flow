@@ -1,6 +1,7 @@
 # Lava Flow
 
-
+## Release 4.0.0 (2024-12-27)
+- Fixed v12 compatibility issues (permissions, folder creation).
 
 ## Release 3.1.0 (2024-04-01)
 - Notes can be turned into pages within a single Journal Entry.

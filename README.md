@@ -21,6 +21,7 @@ I highly recommend using the latest version of Foundry supported by the module, 
 | v1.\* | v9 |
 | v2.\* | v10 |
 | v3.\* | v11 |
+| v4.\* | v12 |
 
 ## How to Use
 
