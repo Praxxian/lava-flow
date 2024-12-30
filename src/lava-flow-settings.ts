@@ -17,4 +17,5 @@ export class LavaFlowSettings {
   mediaFolder: string = 'img';
   combineNotes = false;
   combineNotesNoSubfolders = true;
+  useTinyMCE = false;
 }

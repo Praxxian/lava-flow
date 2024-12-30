@@ -1,5 +1,10 @@
 # Lava Flow
 
+## Release 4.1.0 (2024-12-30)
+- Fixed observer permissions for v12.
+- Fixed issue where sheets defaults to HTML, which would not save changes for markdown.
+- Added option to edit in MD or HTML.
+
 ## Release 4.0.0 (2024-12-27)
 - Fixed v12 compatibility issues (permissions, folder creation).
 
