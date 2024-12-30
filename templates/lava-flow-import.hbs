@@ -56,7 +56,11 @@
                 combineNotesNoSubfolders}}checked{{/if}}>
         </div>
     </div>
-    
+
+    <div class="form-group" title="The TinyMCE editor will be used to edit pages instead of Markdown.">
+        <label>Use TinyMCE to edit pages? <i class="far fa-question-circle"></i></label>
+        <input type="checkbox" name="useTinyMCE" id="{{idPrefix}}useTinyMCE" {{#if useTinyMCE}}checked{{/if}}>
+    </div>   
 
     <h1>Non-Markdown Options</h1>
     <div class="form-group" title="Non-markdown files, like images, will be loaded to the game server or S3.">

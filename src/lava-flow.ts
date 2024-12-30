@@ -92,11 +92,15 @@ export default class LavaFlow {
         if (settings.createBacklinks) await LavaFlow.createBacklinks(mdFiles);
       }
 
+      // Update to HTML after we have done all our MD edits
+      if(settings.useTinyMCE)
+        await LavaFlow.ConvertAllToHTML(allJournals);
+
       LavaFlow.log('Import complete.', true);
     } catch (e: any) {
       LavaFlow.errorHandling(e);
     }
-  }
+  }  
 
   static createFolderStructure(fileList: FileList): FolderInfo {
     // let previousDirectories: string[] = [];
@@ -317,17 +321,20 @@ export default class LavaFlow {
     journalEntry: JournalEntry,
   ): Promise<JournalEntry> {
     // @ts-expect-error
-    return JournalEntryPage.create(
+    const page = await JournalEntryPage.create(
       {
         name: pageName,
-        text: { markdown: content, format: 2 }, // CONST.JOURNAL_ENTRY_PAGE_FORMATS.MARKDOWN in v10+
+        // @ts-expect-error
+        text: { markdown: content, format: CONST.JOURNAL_ENTRY_PAGE_FORMATS.MARKDOWN },
       },
       { parent: journalEntry },
     );
+    await page.setFlag("core","sheetClass","core.MarkdownJournalPageSheet");
+    return page;
   }
 
   // @ts-expect-error
-  static async updateJournalPage(page: JournalEntryPage, content: string): Promise<void> {
+  static async updateJournalPage(page: JournalEntryPage, content: string, ): Promise<void> {
     if (page === undefined || page === null) return;
     await page.update({ text: { markdown: content } });
   }
@@ -371,5 +378,22 @@ export default class LavaFlow {
         }
       }
     }
+  }
+
+  // @ts-expect-error
+  static async ConvertAllToHTML(allJournals: JournalEntryPage[]) {
+    const promises = allJournals.map((j) => LavaFlow.ConvertToHTML(j));
+    await Promise.all(promises);
+  }
+  
+  // @ts-expect-error
+  static async ConvertToHTML(page: JournalEntryPage){
+    await Promise.all([
+      page.update({
+        // @ts-expect-error
+        text: { markdown: "", format: CONST.JOURNAL_ENTRY_PAGE_FORMATS.HTML },
+      }),
+      page.setFlag("core","sheetClass","core.JournalTextTinyMCESheet")
+    ])
   }
 }
