@@ -145,7 +145,7 @@ export default class LavaFlow {
       folder.getFilesRecursive().filter((f) => f instanceof MDFileInfo).length > 0;
 
     if (combineFiles) {
-      parentJournal = await this.createJournal(folder.name, parentFolder, settings.playerObserve);
+      parentJournal = await this.createOrGetJournal(folder.name, parentFolder, settings.playerObserve);
     }
 
     if (
@@ -296,6 +296,29 @@ export default class LavaFlow {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;
     return txt.value;
+  }
+
+  static async createOrGetJournal(
+    journalName: string | null,
+    parentFolder: Folder | null = null,
+    playerObserve: boolean,
+  ): Promise<JournalEntry | null> {
+    if (journalName == null || journalName === '') return null;
+    return (await this.getJournal(journalName, parentFolder)) ?? (await this.createJournal(journalName, parentFolder, playerObserve));
+  }
+
+  static async getJournal(folderName: string, parentFolder: Folder | null): Promise<JournalEntry | null> {
+    if (parentFolder !== null) {
+      // v10 not supported by foundry-vtt-types yet
+      // @ts-expect-error
+      const matches = parent.contents.filter((c) => c.name === folderName) ?? [];
+      return matches.length > 0 ? (matches[0] as JournalEntry) : null;
+    } else {
+      return (
+        // @ts-expect-error
+        (game as Game).journal.find((j) => j.parent === null && j.name === folderName) ?? null
+      );
+    }
   }
 
   static async createJournal(
