@@ -11,7 +11,8 @@
   ],
   "compatibility": {
     "minimum": "12",
-    "verified": "12"
+    "verified": "13.347",
+    "maximum": "13"
   },
   "esmodules": "{{sources}}",
   "styles": "{{css}}",
