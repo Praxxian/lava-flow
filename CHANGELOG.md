@@ -1,5 +1,8 @@
 # Lava Flow
 
+## Release 4.2.0 (2025-12-19)
+- Fixed journal tab button for v13.
+
 ## Release 4.1.0 (2024-12-30)
 - Fixed observer permissions for v12.
 - Fixed issue where sheets defaults to HTML, which would not save changes for markdown.
